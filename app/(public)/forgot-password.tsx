@@ -7,32 +7,38 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const textColor = useThemeColor({}, 'text');
   const tintColor = useThemeColor({}, 'tint');
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
 
   const router = useRouter();
-  const { signIn, loading, error } = useAuthActions();
+  const { resetPassword, loading, error } = useAuthActions();
 
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
+  const handleResetPassword = async () => {
     // Basic validation
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    if (!email.trim()) {
+      Alert.alert('Erro', 'Por favor, digite seu email.');
       return;
     }
 
     try {
-      await signIn(email, password);
-      // Navigation will be handled by auth state change
-      router.replace('/(tabs)/explore');
+      await resetPassword(email);
+      Alert.alert(
+        'Email enviado',
+        'Verifique sua caixa de entrada para redefinir sua senha.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.back(),
+          },
+        ]
+      );
     } catch {
-      // Error is already set in the hook
-      Alert.alert('Erro no login', error || 'Não foi possível fazer login.');
+      Alert.alert('Erro', error || 'Não foi possível enviar o email de recuperação.');
     }
   };
 
@@ -50,10 +56,10 @@ export default function LoginScreen() {
               <ThemedText style={styles.logoText}>LOGO</ThemedText>
             </View>
             <ThemedText type="title" style={[styles.welcomeText, { color: textColor }]}>
-              Bem-vindo
+              Recuperar Senha
             </ThemedText>
             <ThemedText style={[styles.subtitleText, { color: iconColor }]}>
-              Faça login para continuar
+              Digite seu email para receber instruções
             </ThemedText>
           </View>
 
@@ -75,58 +81,30 @@ export default function LoginScreen() {
                 editable={!loading}
               />
             </View>
-
-            <View style={styles.inputContainer}>
-              <ThemedText style={styles.inputLabel}>Senha</ThemedText>
-              <TextInput
-                style={[styles.textInput, { 
-                  borderColor: iconColor, 
-                  color: textColor 
-                }]}
-                placeholder="Digite sua senha"
-                placeholderTextColor={iconColor}
-                secureTextEntry={true}
-                autoCapitalize="none"
-                autoCorrect={false}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-              />
-            </View>
-
-            <TouchableOpacity 
-              style={styles.forgotPasswordContainer} 
-              onPress={() => router.push('/(public)/forgot-password')}
-              disabled={loading}
-            >
-              <ThemedText style={[styles.forgotPasswordText, { color: tintColor }]}>
-                Esqueceu a senha?
-              </ThemedText>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.buttonSection}>
             <TouchableOpacity 
-              style={[styles.loginButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
-              onPress={handleLogin}
+              style={[styles.resetButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
+              onPress={handleResetPassword}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color={backgroundColor} />
               ) : (
-                <ThemedText style={[styles.loginButtonText, { color: backgroundColor }]}>
-                  Entrar
+                <ThemedText style={[styles.resetButtonText, { color: backgroundColor }]}>
+                  Enviar Email
                 </ThemedText>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.registerButton, { borderColor: tintColor }]}
-              onPress={() => router.push('/(public)/register')}
+              style={[styles.backButton, { borderColor: tintColor }]}
+              onPress={() => router.back()}
               disabled={loading}
             >
-              <ThemedText style={[styles.registerButtonText, { color: tintColor }]}>
-                Criar conta
+              <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
+                Voltar
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -197,31 +175,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 48,
   },
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginTop: 8,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
   buttonSection: {
     gap: 16,
     marginBottom: 32,
   },
-  loginButton: {
+  resetButton: {
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
   },
-  loginButtonText: {
+  resetButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    
   },
-  registerButton: {
+  backButton: {
     borderRadius: 12,
     borderWidth: 1.5,
     paddingVertical: 16,
@@ -229,26 +198,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 52,
   },
-  registerButtonText: {
+  backButtonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  footerSection: {
-    marginTop: 'auto',
-    paddingBottom: 32,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    opacity: 0.3,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
   },
 });

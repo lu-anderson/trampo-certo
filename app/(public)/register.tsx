@@ -7,32 +7,46 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const textColor = useThemeColor({}, 'text');
   const tintColor = useThemeColor({}, 'tint');
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
 
   const router = useRouter();
-  const { signIn, loading, error } = useAuthActions();
+  const { signUp, loading, error } = useAuthActions();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     // Basic validation
-    if (!email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
+    if (password !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
     try {
-      await signIn(email, password);
-      // Navigation will be handled by auth state change
-      router.replace('/(tabs)/explore');
+      await signUp(email, password);
+      Alert.alert('Sucesso', 'Conta criada com sucesso!', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/(tabs)/explore'),
+        },
+      ]);
     } catch {
-      // Error is already set in the hook
-      Alert.alert('Erro no login', error || 'Não foi possível fazer login.');
+      Alert.alert('Erro no cadastro', error || 'Não foi possível criar a conta.');
     }
   };
 
@@ -50,10 +64,10 @@ export default function LoginScreen() {
               <ThemedText style={styles.logoText}>LOGO</ThemedText>
             </View>
             <ThemedText type="title" style={[styles.welcomeText, { color: textColor }]}>
-              Bem-vindo
+              Criar Conta
             </ThemedText>
             <ThemedText style={[styles.subtitleText, { color: iconColor }]}>
-              Faça login para continuar
+              Preencha os dados para começar
             </ThemedText>
           </View>
 
@@ -83,7 +97,7 @@ export default function LoginScreen() {
                   borderColor: iconColor, 
                   color: textColor 
                 }]}
-                placeholder="Digite sua senha"
+                placeholder="Digite sua senha (mín. 6 caracteres)"
                 placeholderTextColor={iconColor}
                 secureTextEntry={true}
                 autoCapitalize="none"
@@ -94,39 +108,47 @@ export default function LoginScreen() {
               />
             </View>
 
-            <TouchableOpacity 
-              style={styles.forgotPasswordContainer} 
-              onPress={() => router.push('/(public)/forgot-password')}
-              disabled={loading}
-            >
-              <ThemedText style={[styles.forgotPasswordText, { color: tintColor }]}>
-                Esqueceu a senha?
-              </ThemedText>
-            </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <ThemedText style={styles.inputLabel}>Confirmar Senha</ThemedText>
+              <TextInput
+                style={[styles.textInput, { 
+                  borderColor: iconColor, 
+                  color: textColor 
+                }]}
+                placeholder="Confirme sua senha"
+                placeholderTextColor={iconColor}
+                secureTextEntry={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                editable={!loading}
+              />
+            </View>
           </View>
 
           <View style={styles.buttonSection}>
             <TouchableOpacity 
-              style={[styles.loginButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
-              onPress={handleLogin}
+              style={[styles.registerButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
+              onPress={handleRegister}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color={backgroundColor} />
               ) : (
-                <ThemedText style={[styles.loginButtonText, { color: backgroundColor }]}>
-                  Entrar
+                <ThemedText style={[styles.registerButtonText, { color: backgroundColor }]}>
+                  Criar Conta
                 </ThemedText>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.registerButton, { borderColor: tintColor }]}
-              onPress={() => router.push('/(public)/register')}
+              style={[styles.backButton, { borderColor: tintColor }]}
+              onPress={() => router.back()}
               disabled={loading}
             >
-              <ThemedText style={[styles.registerButtonText, { color: tintColor }]}>
-                Criar conta
+              <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
+                Voltar
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -197,33 +219,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 48,
   },
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginTop: 8,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
   buttonSection: {
     gap: 16,
     marginBottom: 32,
   },
-  loginButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-  },
-  loginButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    
-  },
   registerButton: {
     borderRadius: 12,
-    borderWidth: 1.5,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -233,22 +234,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  footerSection: {
-    marginTop: 'auto',
-    paddingBottom: 32,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
+  backButton: {
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginVertical: 24,
+    justifyContent: 'center',
+    minHeight: 52,
   },
-  divider: {
-    flex: 1,
-    height: 1,
-    opacity: 0.3,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
