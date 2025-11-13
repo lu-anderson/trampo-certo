@@ -4,7 +4,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAuthActions } from '@/hooks/use-auth-actions';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
@@ -18,11 +18,15 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState('');
 
   const handleLogin = async () => {
+    // Clear previous errors
+    setFormError('');
+
     // Basic validation
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      setFormError('Por favor, preencha todos os campos.');
       return;
     }
 
@@ -31,8 +35,8 @@ export default function LoginScreen() {
       // Navigation will be handled by auth state change
       router.replace('/(tabs)/explore');
     } catch {
-      // Error is already set in the hook
-      Alert.alert('Erro no login', error || 'Não foi possível fazer login.');
+      // Error is already set in the hook with friendly message
+      setFormError(error || 'Não foi possível fazer login.');
     }
   };
 
@@ -58,6 +62,14 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.formSection}>
+            {formError ? (
+              <View style={[styles.errorContainer, { backgroundColor: '#fee', borderColor: '#fcc' }]}>
+                <ThemedText style={[styles.errorText, { color: '#c00' }]}>
+                  {formError}
+                </ThemedText>
+              </View>
+            ) : null}
+
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>Email</ThemedText>
               <TextInput
@@ -180,6 +192,16 @@ const styles = StyleSheet.create({
   },
   formSection: {
     marginBottom: 32,
+  },
+  errorContainer: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   inputContainer: {
     marginBottom: 20,

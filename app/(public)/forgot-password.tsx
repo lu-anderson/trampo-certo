@@ -4,7 +4,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAuthActions } from '@/hooks/use-auth-actions';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ForgotPasswordScreen() {
@@ -17,28 +17,26 @@ export default function ForgotPasswordScreen() {
   const { resetPassword, loading, error } = useAuthActions();
 
   const [email, setEmail] = useState('');
+  const [formError, setFormError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleResetPassword = async () => {
+    // Clear previous messages
+    setFormError('');
+    setSuccessMessage('');
+
     // Basic validation
     if (!email.trim()) {
-      Alert.alert('Erro', 'Por favor, digite seu email.');
+      setFormError('Por favor, digite seu email.');
       return;
     }
 
     try {
       await resetPassword(email);
-      Alert.alert(
-        'Email enviado',
-        'Verifique sua caixa de entrada para redefinir sua senha.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      setSuccessMessage('Email enviado! Verifique sua caixa de entrada para redefinir sua senha.');
+      setEmail('');
     } catch {
-      Alert.alert('Erro', error || 'Não foi possível enviar o email de recuperação.');
+      setFormError(error || 'Não foi possível enviar o email de recuperação.');
     }
   };
 
@@ -64,6 +62,22 @@ export default function ForgotPasswordScreen() {
           </View>
 
           <View style={styles.formSection}>
+            {formError ? (
+              <View style={[styles.errorContainer, { backgroundColor: '#fee', borderColor: '#fcc' }]}>
+                <ThemedText style={[styles.errorText, { color: '#c00' }]}>
+                  {formError}
+                </ThemedText>
+              </View>
+            ) : null}
+
+            {successMessage ? (
+              <View style={[styles.successContainer, { backgroundColor: '#efe', borderColor: '#cfc' }]}>
+                <ThemedText style={[styles.successText, { color: '#0a0' }]}>
+                  {successMessage}
+                </ThemedText>
+              </View>
+            ) : null}
+
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>Email</ThemedText>
               <TextInput
@@ -158,6 +172,26 @@ const styles = StyleSheet.create({
   },
   formSection: {
     marginBottom: 32,
+  },
+  errorContainer: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  successContainer: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  successText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   inputContainer: {
     marginBottom: 20,
