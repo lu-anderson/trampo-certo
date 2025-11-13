@@ -84,6 +84,7 @@ export default function LoginScreen() {
 
             <TouchableOpacity 
               style={[styles.registerButton, { borderColor: tintColor }]}
+              onPress={() => router.push('/register')}
             >
               <ThemedText style={[styles.registerButtonText, { color: tintColor }]}>
                 Criar conta
