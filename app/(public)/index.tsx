@@ -18,15 +18,47 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [formError, setFormError] = useState('');
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
+  const [generalError, setGeneralError] = useState('');
+
+  const validateForm = () => {
+    const newErrors = {
+      email: '',
+      password: '',
+    };
+
+    let isValid = true;
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+      isValid = false;
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = 'Email inválido';
+      isValid = false;
+    }
+
+    // Validate password
+    if (!password) {
+      newErrors.password = 'Senha é obrigatória';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleLogin = async () => {
     // Clear previous errors
-    setFormError('');
+    setErrors({ email: '', password: '' });
+    setGeneralError('');
 
-    // Basic validation
-    if (!email.trim() || !password.trim()) {
-      setFormError('Por favor, preencha todos os campos.');
+    // Validate form
+    if (!validateForm()) {
       return;
     }
 
@@ -36,7 +68,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)/explore');
     } catch {
       // Error is already set in the hook with friendly message
-      setFormError(error || 'Não foi possível fazer login.');
+      setGeneralError(error || 'Não foi possível fazer login.');
     }
   };
 
@@ -62,14 +94,6 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.formSection}>
-            {formError ? (
-              <View style={[styles.errorContainer, { backgroundColor: '#fee', borderColor: '#fcc' }]}>
-                <ThemedText style={[styles.errorText, { color: '#c00' }]}>
-                  {formError}
-                </ThemedText>
-              </View>
-            ) : null}
-
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>Email</ThemedText>
               <TextInput
@@ -86,6 +110,11 @@ export default function LoginScreen() {
                 onChangeText={setEmail}
                 editable={!loading}
               />
+              {errors.email ? (
+                <ThemedText style={styles.errorText}>
+                  {errors.email}
+                </ThemedText>
+              ) : null}
             </View>
 
             <View style={styles.inputContainer}>
@@ -104,6 +133,11 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 editable={!loading}
               />
+              {errors.password ? (
+                <ThemedText style={styles.errorText}>
+                  {errors.password}
+                </ThemedText>
+              ) : null}
             </View>
 
             <TouchableOpacity 
@@ -118,6 +152,12 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.buttonSection}>
+            {generalError ? (
+              <ThemedText style={styles.errorText}>
+                {generalError}
+              </ThemedText>
+            ) : null}
+
             <TouchableOpacity 
               style={[styles.loginButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
               onPress={handleLogin}
@@ -193,16 +233,6 @@ const styles = StyleSheet.create({
   formSection: {
     marginBottom: 32,
   },
-  errorContainer: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
   inputContainer: {
     marginBottom: 20,
   },
@@ -218,6 +248,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     minHeight: 48,
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   forgotPasswordContainer: {
     alignItems: 'flex-end',

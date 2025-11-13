@@ -17,17 +17,39 @@ export default function ForgotPasswordScreen() {
   const { resetPassword, loading, error } = useAuthActions();
 
   const [email, setEmail] = useState('');
-  const [formError, setFormError] = useState('');
+  const [errors, setErrors] = useState({
+    email: '',
+  });
   const [successMessage, setSuccessMessage] = useState('');
+
+  const validateForm = () => {
+    const newErrors = {
+      email: '',
+    };
+
+    let isValid = true;
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+      isValid = false;
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = 'Email inválido';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleResetPassword = async () => {
     // Clear previous messages
-    setFormError('');
+    setErrors({ email: '' });
     setSuccessMessage('');
 
-    // Basic validation
-    if (!email.trim()) {
-      setFormError('Por favor, digite seu email.');
+    // Validate form
+    if (!validateForm()) {
       return;
     }
 
@@ -36,7 +58,7 @@ export default function ForgotPasswordScreen() {
       setSuccessMessage('Email enviado! Verifique sua caixa de entrada para redefinir sua senha.');
       setEmail('');
     } catch {
-      setFormError(error || 'Não foi possível enviar o email de recuperação.');
+      setErrors({ email: error || 'Não foi possível enviar o email de recuperação.' });
     }
   };
 
@@ -62,14 +84,6 @@ export default function ForgotPasswordScreen() {
           </View>
 
           <View style={styles.formSection}>
-            {formError ? (
-              <View style={[styles.errorContainer, { backgroundColor: '#fee', borderColor: '#fcc' }]}>
-                <ThemedText style={[styles.errorText, { color: '#c00' }]}>
-                  {formError}
-                </ThemedText>
-              </View>
-            ) : null}
-
             {successMessage ? (
               <View style={[styles.successContainer, { backgroundColor: '#efe', borderColor: '#cfc' }]}>
                 <ThemedText style={[styles.successText, { color: '#0a0' }]}>
@@ -94,6 +108,11 @@ export default function ForgotPasswordScreen() {
                 onChangeText={setEmail}
                 editable={!loading}
               />
+              {errors.email ? (
+                <ThemedText style={styles.errorText}>
+                  {errors.email}
+                </ThemedText>
+              ) : null}
             </View>
           </View>
 
@@ -173,16 +192,6 @@ const styles = StyleSheet.create({
   formSection: {
     marginBottom: 32,
   },
-  errorContainer: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
   successContainer: {
     padding: 12,
     borderRadius: 8,
@@ -208,6 +217,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     minHeight: 48,
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   buttonSection: {
     gap: 16,
