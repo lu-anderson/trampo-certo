@@ -14,7 +14,7 @@ export default function ForgotPasswordScreen() {
   const backgroundColor = useThemeColor({}, 'background');
 
   const router = useRouter();
-  const { resetPassword, loading, error } = useAuthActions();
+  const { resetPassword, loading } = useAuthActions();
 
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({
@@ -57,8 +57,9 @@ export default function ForgotPasswordScreen() {
       await resetPassword(email);
       setSuccessMessage('Email enviado! Verifique sua caixa de entrada para redefinir sua senha.');
       setEmail('');
-    } catch {
-      setErrors({ email: error || 'Não foi possível enviar o email de recuperação.' });
+    } catch (e: any) {
+      // Error message is already translated to Portuguese by AuthService
+      setErrors({ email: e.message || 'Não foi possível enviar o email de recuperação.' });
     }
   };
 

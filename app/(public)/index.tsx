@@ -14,7 +14,7 @@ export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, 'background');
 
   const router = useRouter();
-  const { signIn, loading, error } = useAuthActions();
+  const { signIn, loading } = useAuthActions();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,9 +66,9 @@ export default function LoginScreen() {
       await signIn(email, password);
       // Navigation will be handled by auth state change
       router.replace('/(tabs)/explore');
-    } catch {
-      // Error is already set in the hook with friendly message
-      setGeneralError(error || 'Não foi possível fazer login.');
+    } catch (e: any) {
+      // Error message is already translated to Portuguese by AuthService
+      setGeneralError(e.message || 'Não foi possível fazer login.');
     }
   };
 
