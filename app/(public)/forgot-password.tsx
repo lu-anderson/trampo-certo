@@ -1,10 +1,10 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAuthActions } from '@/hooks/use-auth-actions';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ForgotPasswordScreen() {
@@ -29,7 +29,6 @@ export default function ForgotPasswordScreen() {
 
     let isValid = true;
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       newErrors.email = 'Email é obrigatório';
@@ -44,11 +43,9 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleResetPassword = async () => {
-    // Clear previous messages
     setErrors({ email: '' });
     setSuccessMessage('');
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -58,7 +55,6 @@ export default function ForgotPasswordScreen() {
       setSuccessMessage('Email enviado! Verifique sua caixa de entrada para redefinir sua senha.');
       setEmail('');
     } catch (e: any) {
-      // Error message is already translated to Portuguese by AuthService
       setErrors({ email: e.message || 'Não foi possível enviar o email de recuperação.' });
     }
   };
