@@ -32,7 +32,6 @@ export default function LoginScreen() {
 
     let isValid = true;
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       newErrors.email = 'Email é obrigatório';
@@ -42,7 +41,6 @@ export default function LoginScreen() {
       isValid = false;
     }
 
-    // Validate password
     if (!password) {
       newErrors.password = 'Senha é obrigatória';
       isValid = false;
@@ -53,11 +51,9 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    // Clear previous errors
     setErrors({ email: '', password: '' });
     setGeneralError('');
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -67,7 +63,6 @@ export default function LoginScreen() {
       // Navigation will be handled by auth state change
       router.replace('/(tabs)/explore');
     } catch (e: any) {
-      // Error message is already translated to Portuguese by AuthService
       setGeneralError(e.message || 'Não foi possível fazer login.');
     }
   };
