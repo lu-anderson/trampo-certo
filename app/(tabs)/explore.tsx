@@ -1,44 +1,15 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
-import { Collapsible } from '@/components/ui/collapsible';
 import { ExternalLink } from '@/components/external-link';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Collapsible } from '@/components/ui/collapsible';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
-import { useAuthActions } from '@/hooks/use-auth-actions';
-import { useAuth } from '@/contexts/auth-context';
 
 export default function TabTwoScreen() {
-  const { signOut } = useAuthActions();
-  const { user } = useAuth();
-
-  const handleSignOut = async () => {
-    Alert.alert(
-      'Sair',
-      'Tem certeza que deseja sair?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut();
-            } catch {
-              Alert.alert('Erro', 'Não foi possível fazer logout.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
@@ -59,16 +30,6 @@ export default function TabTwoScreen() {
           Explore
         </ThemedText>
       </ThemedView>
-      
-      {user && (
-        <ThemedView style={styles.userContainer}>
-          <ThemedText>Logado como: {user.email}</ThemedText>
-          <TouchableOpacity onPress={handleSignOut} style={styles.logoutButton}>
-            <ThemedText type="link">Sair</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      )}
-
       <ThemedText>This app includes example code to help you get started.</ThemedText>
       <Collapsible title="File-based routing">
         <ThemedText>
@@ -147,14 +108,5 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
-  },
-  userContainer: {
-    marginVertical: 16,
-    padding: 16,
-    borderRadius: 8,
-    gap: 8,
-  },
-  logoutButton: {
-    marginTop: 8,
   },
 });
