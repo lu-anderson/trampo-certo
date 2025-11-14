@@ -7,27 +7,24 @@ import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const textColor = useThemeColor({}, 'text');
   const tintColor = useThemeColor({}, 'tint');
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
 
   const router = useRouter();
-  const { signIn, loading } = useAuthActions();
+  const { resetPassword, loading } = useAuthActions();
 
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({
     email: '',
-    password: '',
   });
-  const [generalError, setGeneralError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const validateForm = () => {
     const newErrors = {
       email: '',
-      password: '',
     };
 
     let isValid = true;
@@ -41,29 +38,24 @@ export default function LoginScreen() {
       isValid = false;
     }
 
-    if (!password) {
-      newErrors.password = 'Senha é obrigatória';
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
 
-  const handleLogin = async () => {
-    setErrors({ email: '', password: '' });
-    setGeneralError('');
+  const handleResetPassword = async () => {
+    setErrors({ email: '' });
+    setSuccessMessage('');
 
     if (!validateForm()) {
       return;
     }
 
     try {
-      await signIn(email, password);
-      // Navigation will be handled by auth state change
-      router.replace('/(tabs)/explore');
+      await resetPassword(email);
+      setSuccessMessage('Email enviado! Verifique sua caixa de entrada para redefinir sua senha.');
+      setEmail('');
     } catch (e: any) {
-      setGeneralError(e.message || 'Não foi possível fazer login.');
+      setErrors({ email: e.message || 'Não foi possível enviar o email de recuperação.' });
     }
   };
 
@@ -81,14 +73,22 @@ export default function LoginScreen() {
               <ThemedText style={styles.logoText}>LOGO</ThemedText>
             </View>
             <ThemedText type="title" style={[styles.welcomeText, { color: textColor }]}>
-              Bem-vindo
+              Recuperar Senha
             </ThemedText>
             <ThemedText style={[styles.subtitleText, { color: iconColor }]}>
-              Faça login para continuar
+              Digite seu email para receber instruções
             </ThemedText>
           </View>
 
           <View style={styles.formSection}>
+            {successMessage ? (
+              <View style={[styles.successContainer, { backgroundColor: '#efe', borderColor: '#cfc' }]}>
+                <ThemedText style={[styles.successText, { color: '#0a0' }]}>
+                  {successMessage}
+                </ThemedText>
+              </View>
+            ) : null}
+
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>Email</ThemedText>
               <TextInput
@@ -111,69 +111,30 @@ export default function LoginScreen() {
                 </ThemedText>
               ) : null}
             </View>
-
-            <View style={styles.inputContainer}>
-              <ThemedText style={styles.inputLabel}>Senha</ThemedText>
-              <TextInput
-                style={[styles.textInput, { 
-                  borderColor: iconColor, 
-                  color: textColor 
-                }]}
-                placeholder="Digite sua senha"
-                placeholderTextColor={iconColor}
-                secureTextEntry={true}
-                autoCapitalize="none"
-                autoCorrect={false}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-              />
-              {errors.password ? (
-                <ThemedText style={styles.errorText}>
-                  {errors.password}
-                </ThemedText>
-              ) : null}
-            </View>
-
-            <TouchableOpacity 
-              style={styles.forgotPasswordContainer} 
-              onPress={() => router.push('/(public)/forgot-password')}
-              disabled={loading}
-            >
-              <ThemedText style={[styles.forgotPasswordText, { color: tintColor }]}>
-                Esqueceu a senha?
-              </ThemedText>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.buttonSection}>
-            {generalError ? (
-              <ThemedText style={styles.errorText}>
-                {generalError}
-              </ThemedText>
-            ) : null}
-
             <TouchableOpacity 
-              style={[styles.loginButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
-              onPress={handleLogin}
+              style={[styles.resetButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
+              onPress={handleResetPassword}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color={backgroundColor} />
               ) : (
-                <ThemedText style={[styles.loginButtonText, { color: backgroundColor }]}>
-                  Entrar
+                <ThemedText style={[styles.resetButtonText, { color: backgroundColor }]}>
+                  Enviar Email
                 </ThemedText>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.registerButton, { borderColor: tintColor }]}
-              onPress={() => router.push('/(public)/register')}
+              style={[styles.backButton, { borderColor: tintColor }]}
+              onPress={() => router.back()}
               disabled={loading}
             >
-              <ThemedText style={[styles.registerButtonText, { color: tintColor }]}>
-                Criar conta
+              <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
+                Voltar
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -228,6 +189,16 @@ const styles = StyleSheet.create({
   formSection: {
     marginBottom: 32,
   },
+  successContainer: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  successText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
   inputContainer: {
     marginBottom: 20,
   },
@@ -250,31 +221,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginTop: 8,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
   buttonSection: {
     gap: 16,
     marginBottom: 32,
   },
-  loginButton: {
+  resetButton: {
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
   },
-  loginButtonText: {
+  resetButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    
   },
-  registerButton: {
+  backButton: {
     borderRadius: 12,
     borderWidth: 1.5,
     paddingVertical: 16,
@@ -282,26 +244,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 52,
   },
-  registerButtonText: {
+  backButtonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  footerSection: {
-    marginTop: 'auto',
-    paddingBottom: 32,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    opacity: 0.3,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
   },
 });
