@@ -1,6 +1,6 @@
 import { auth } from '@/_service/firebase';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 interface AuthContextType {
   user: User | null;
@@ -14,7 +14,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,11 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     loading,
     isAuthenticated: !!user,
-  };
+  }), [user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
