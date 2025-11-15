@@ -1,6 +1,7 @@
 import env from "@/constants/environment";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import { AuthService } from "./auth";
 
 // Initialize Firebase
@@ -12,4 +13,7 @@ const auth = getAuth(app);
 // Initialize Auth Service
 const authService = new AuthService(auth);
 
-export { auth, authService };
+// Initialize Firestore and get a reference to the service
+const firestore = getFirestore(app);
+
+export { auth, authService, firestore };

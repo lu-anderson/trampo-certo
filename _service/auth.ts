@@ -1,19 +1,21 @@
-import { 
+import type { RegisterUserData } from '@/types/user';
+import {
+  Auth,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  signInWithEmailAndPassword,
   User,
-  UserCredential,
-  Auth
+  UserCredential
 } from 'firebase/auth';
+import { createUserProfile } from './firestore';
 
 /**
  * Authentication Service
  * Handles all Firebase authentication operations
  */
 export class AuthService {
-  private auth: Auth;
+  private readonly auth: Auth;
 
   constructor(auth: Auth) {
     this.auth = auth;
@@ -32,14 +34,29 @@ export class AuthService {
   }
 
   /**
-   * Create new user with email and password
+   * Registers a new user with email and password
+   * Creates both Firebase Auth user and Firestore user profile
    */
-  async signUpWithEmail(email: string, password: string): Promise<UserCredential> {
+  async registerUser(userData: RegisterUserData): Promise<User> {
     try {
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      return userCredential;
+      const userCredential = await createUserWithEmailAndPassword(
+        this.auth,
+        userData.email,
+        userData.password
+      );
+
+      const user = userCredential.user;
+
+      await createUserProfile({
+        uid: user.uid,
+        name: userData.name,
+        email: userData.email,
+      });
+
+      return user;
     } catch (error: any) {
-      throw this.handleAuthError(error);
+      const errorMessage = this.handleAuthError(error.code);
+      throw new Error(errorMessage);
     }
   }
 
@@ -72,47 +89,24 @@ export class AuthService {
     return this.auth.currentUser;
   }
 
+
   /**
-   * Handle Firebase auth errors and convert to user-friendly messages
-   */
-  private handleAuthError(error: any): Error {
-    let message = 'Ocorreu um erro. Tente novamente.';
+ * Maps Firebase auth error codes to user-friendly Portuguese messages
+ */
+  private handleAuthError(errorCode: string): string {
+    const errorMessages: Record<string, string> = {
+      'auth/email-already-in-use': 'Este email já está em uso. Tente fazer login ou use outro email.',
+      'auth/invalid-email': 'O email fornecido é inválido.',
+      'auth/operation-not-allowed': 'Operação não permitida. Entre em contato com o suporte.',
+      'auth/weak-password': 'A senha é muito fraca. Use pelo menos 6 caracteres.',
+      'auth/network-request-failed': 'Erro de conexão. Verifique sua internet e tente novamente.',
+      'auth/user-disabled': 'Esta conta foi desativada. Entre em contato com o suporte.',
+      'auth/user-not-found': 'Usuário não encontrado. Verifique o email e tente novamente.',
+      'auth/wrong-password': 'Email ou senha incorretos. Tente novamente.',
+      'auth/too-many-requests': 'Muitas tentativas. Aguarde um momento e tente novamente.',
+      'auth/invalid-credential': 'Email ou senha incorretos. Tente novamente.',
+    };
 
-    switch (error.code) {
-      case 'auth/email-already-in-use':
-        message = 'Este email já está em uso.';
-        break;
-      case 'auth/invalid-email':
-        message = 'Email inválido.';
-        break;
-      case 'auth/operation-not-allowed':
-        message = 'Operação não permitida.';
-        break;
-      case 'auth/weak-password':
-        message = 'A senha é muito fraca. Use pelo menos 6 caracteres.';
-        break;
-      case 'auth/user-disabled':
-        message = 'Esta conta foi desativada.';
-        break;
-      case 'auth/user-not-found':
-        message = 'Usuário não encontrado.';
-        break;
-      case 'auth/wrong-password':
-        message = 'Email ou senha incorretos.';
-        break;
-      case 'auth/too-many-requests':
-        message = 'Muitas tentativas. Tente novamente mais tarde.';
-        break;
-      case 'auth/network-request-failed':
-        message = 'Erro de conexão. Verifique sua internet.';
-        break;
-      case 'auth/invalid-credential':
-        message = 'Email ou senha incorretos.';
-        break;
-      default:
-        message = error.message || 'Ocorreu um erro. Tente novamente.';
-    }
-
-    return new Error(message);
-  }
+    return errorMessages[errorCode] || 'Ocorreu um erro inesperado. Tente novamente.';
+  } 
 }

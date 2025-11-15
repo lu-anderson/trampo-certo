@@ -11,9 +11,11 @@ import {
   TouchableOpacity, 
   View,
   ScrollView,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { registerUser } from '@/_service/auth';
 
 export default function RegisterScreen() {
   const textColor = useThemeColor({}, 'text');
@@ -27,6 +29,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const [errors, setErrors] = useState({
     name: '',
@@ -83,19 +86,44 @@ export default function RegisterScreen() {
     return isValid;
   };
 
-  const handleRegister = () => {
-    if (validateForm()) {
-      // TODO: Implement Firebase registration
+  const handleRegister = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Register user with Firebase
+      await registerUser({
+        name,
+        email,
+        password,
+      });
+
+      // Show success message
       Alert.alert(
-        'Cadastro',
-        'Funcionalidade de cadastro será implementada',
+        'Sucesso!',
+        'Cadastro realizado com sucesso. Bem-vindo ao Trampo Certo!',
         [
           {
             text: 'OK',
-            onPress: () => router.back(),
+            onPress: () => {
+              // Navigate to home screen
+              router.replace('/(tabs)');
+            },
           },
         ]
       );
+    } catch (error: any) {
+      // Show error message
+      Alert.alert(
+        'Erro no cadastro',
+        error.message || 'Ocorreu um erro inesperado. Tente novamente.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -229,15 +257,21 @@ export default function RegisterScreen() {
                 <TouchableOpacity 
                   style={[styles.registerButton, { backgroundColor: tintColor }]}
                   onPress={handleRegister}
+                  disabled={isLoading}
                 >
-                  <ThemedText style={[styles.registerButtonText, { color: backgroundColor }]}>
-                    Cadastrar
-                  </ThemedText>
+                  {isLoading ? (
+                    <ActivityIndicator color={backgroundColor} />
+                  ) : (
+                    <ThemedText style={[styles.registerButtonText, { color: backgroundColor }]}>
+                      Cadastrar
+                    </ThemedText>
+                  )}
                 </TouchableOpacity>
 
                 <TouchableOpacity 
                   style={[styles.backButton, { borderColor: tintColor }]}
                   onPress={() => router.back()}
+                  disabled={isLoading}
                 >
                   <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
                     Voltar para login
