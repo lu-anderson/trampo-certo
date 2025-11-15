@@ -1,6 +1,6 @@
-import { firestore } from './firebase';
-import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import type { UserProfile } from '@/types/user';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { firestore } from './firebase';
 
 /**
  * Firestore Database Service
