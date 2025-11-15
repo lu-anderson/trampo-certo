@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 interface UseAuthActionsReturn {
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   loading: boolean;
@@ -31,11 +31,11 @@ export function useAuthActions(): UseAuthActionsReturn {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     setError(null);
     try {
-      await authService.signUpWithEmail(email, password);
+      await authService.registerUser({ email, password, name });
     } catch (err: any) {
       setError(err.message);
       throw err;
