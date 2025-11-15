@@ -1,21 +1,21 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useAuthActions } from '@/hooks/use-auth-actions';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { 
-  KeyboardAvoidingView, 
-  Platform, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  View,
-  ScrollView,
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
   Alert,
-  ActivityIndicator
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { registerUser } from '@/_service/auth';
 
 export default function RegisterScreen() {
   const textColor = useThemeColor({}, 'text');
@@ -23,13 +23,14 @@ export default function RegisterScreen() {
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
 
+  const { signUp, loading, error: signUpError } = useAuthActions();
+
   const router = useRouter();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const [errors, setErrors] = useState({
     name: '',
@@ -48,13 +49,11 @@ export default function RegisterScreen() {
 
     let isValid = true;
 
-    // Validate name
     if (!name.trim()) {
       newErrors.name = 'Nome é obrigatório';
       isValid = false;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       newErrors.email = 'Email é obrigatório';
@@ -64,7 +63,6 @@ export default function RegisterScreen() {
       isValid = false;
     }
 
-    // Validate password
     if (!password) {
       newErrors.password = 'Senha é obrigatória';
       isValid = false;
@@ -73,7 +71,6 @@ export default function RegisterScreen() {
       isValid = false;
     }
 
-    // Validate confirm password
     if (!confirmPassword) {
       newErrors.confirmPassword = 'Confirmação de senha é obrigatória';
       isValid = false;
@@ -91,41 +88,32 @@ export default function RegisterScreen() {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      // Register user with Firebase
-      await registerUser({
-        name,
-        email,
-        password,
-      });
-
-      // Show success message
-      Alert.alert(
-        'Sucesso!',
-        'Cadastro realizado com sucesso. Bem-vindo ao Trampo Certo!',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Navigate to home screen
-              router.replace('/(tabs)');
-            },
+    await signUp(email, password, name);
+    
+    Alert.alert(
+      'Sucesso!',
+      'Cadastro realizado com sucesso. Bem-vindo ao Trampo Certo!',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            router.replace('/(tabs)');
           },
-        ]
-      );
-    } catch (error: any) {
-      // Show error message
+        },
+      ]
+    );
+  };
+
+  useEffect(() => {
+    if (signUpError) {
       Alert.alert(
         'Erro no cadastro',
-        error.message || 'Ocorreu um erro inesperado. Tente novamente.',
+        signUpError,
         [{ text: 'OK' }]
       );
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [signUpError]);
+
 
   return (
     <ThemedView style={styles.container}>
@@ -257,9 +245,9 @@ export default function RegisterScreen() {
                 <TouchableOpacity 
                   style={[styles.registerButton, { backgroundColor: tintColor }]}
                   onPress={handleRegister}
-                  disabled={isLoading}
+                  disabled={loading}
                 >
-                  {isLoading ? (
+                  {loading ? (
                     <ActivityIndicator color={backgroundColor} />
                   ) : (
                     <ThemedText style={[styles.registerButtonText, { color: backgroundColor }]}>
@@ -271,7 +259,7 @@ export default function RegisterScreen() {
                 <TouchableOpacity 
                   style={[styles.backButton, { borderColor: tintColor }]}
                   onPress={() => router.back()}
-                  disabled={isLoading}
+                  disabled={loading}
                 >
                   <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
                     Voltar para login
