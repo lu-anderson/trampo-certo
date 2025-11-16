@@ -3,10 +3,9 @@ import { ThemedView } from '@/components/themed-view';
 import { useAuthActions } from '@/hooks/use-auth-actions';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -89,31 +88,9 @@ export default function RegisterScreen() {
     }
 
     await signUp(email, password, name);
-    
-    Alert.alert(
-      'Sucesso!',
-      'Cadastro realizado com sucesso. Bem-vindo ao Trampo Certo!',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            router.replace('/(tabs)');
-          },
-        },
-      ]
-    );
+
+    router.replace('/(tabs)');
   };
-
-  useEffect(() => {
-    if (signUpError) {
-      Alert.alert(
-        'Erro no cadastro',
-        signUpError,
-        [{ text: 'OK' }]
-      );
-    }
-  }, [signUpError]);
-
 
   return (
     <ThemedView style={styles.container}>
@@ -242,6 +219,11 @@ export default function RegisterScreen() {
               </View>
 
               <View style={styles.buttonSection}>
+                {signUpError ? (
+                  <ThemedText style={styles.errorText}>
+                    {signUpError}
+                  </ThemedText>
+                ) : null}
                 <TouchableOpacity 
                   style={[styles.registerButton, { backgroundColor: tintColor }]}
                   onPress={handleRegister}
