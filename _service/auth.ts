@@ -29,7 +29,8 @@ export class AuthService {
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
       return userCredential;
     } catch (error: any) {
-      throw this.handleAuthError(error);
+      const errorMessage = this.handleAuthError(error.code);
+      throw new Error(errorMessage);
     }
   }
 
@@ -67,7 +68,8 @@ export class AuthService {
     try {
       await firebaseSignOut(this.auth);
     } catch (error: any) {
-      throw this.handleAuthError(error);
+      const errorMessage = this.handleAuthError(error.code);
+      throw new Error(errorMessage);
     }
   }
 
@@ -78,7 +80,8 @@ export class AuthService {
     try {
       await sendPasswordResetEmail(this.auth, email);
     } catch (error: any) {
-      throw this.handleAuthError(error);
+      const errorMessage = this.handleAuthError(error.code);
+      throw new Error(errorMessage);
     }
   }
 
