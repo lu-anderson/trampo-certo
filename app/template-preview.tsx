@@ -15,8 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { getMockTemplateById } from '@/constants/templates';
+import { Colors } from '@/constants/theme';
 
 export default function TemplatePreviewScreen() {
   const { templateId } = useLocalSearchParams<{ templateId: string }>();
@@ -44,9 +44,6 @@ export default function TemplatePreviewScreen() {
     router.back();
   };
 
-  const handleBack = () => {
-    router.back();
-  };
 
   const openFullImage = () => {
     setShowFullImage(true);
@@ -174,7 +171,7 @@ export default function TemplatePreviewScreen() {
                   : 'rgba(0, 0, 0, 0.05)',
             },
           ]}
-          onPress={handleBack}>
+          onPress={router.back}>
           <ThemedText style={styles.backButtonText}>Voltar</ThemedText>
         </Pressable>
 
@@ -205,7 +202,7 @@ export default function TemplatePreviewScreen() {
         <Pressable
           style={styles.modalOverlay}
           onPress={closeFullImage}
-          activeOpacity={1}>
+        >
           {/* Close Button */}
           <Pressable
             style={styles.closeButton}
@@ -291,14 +288,12 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   imageWrapper: {
-    height: 250,
+    height: 400,
     position: 'relative',
     overflow: 'hidden',
   },
   previewImage: {
     width: '100%',
-    height: '100%',
-    position: 'absolute',
     top: 0,
     left: 0,
   },
