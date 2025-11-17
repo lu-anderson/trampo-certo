@@ -63,28 +63,15 @@ export default function TemplatePreviewScreen() {
       useNativeDriver: true,
       tension: 50,
       friction: 7,
-    }).start(() => {
+    }).start();
+    // Hide modal immediately to avoid lingering black background
+    setTimeout(() => {
       setShowFullImage(false);
-    });
+    }, 200);
   };
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header with Back Button */}
-      <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backButton}>
-          <IconSymbol
-            name="chevron.left"
-            size={28}
-            color={Colors[colorScheme ?? 'light'].tint}
-          />
-          <ThemedText
-            style={[styles.backText, { color: Colors[colorScheme ?? 'light'].tint }]}>
-            Voltar
-          </ThemedText>
-        </Pressable>
-      </View>
-
       {/* Template Preview */}
       <ScrollView
         style={styles.scrollView}
@@ -170,7 +157,10 @@ export default function TemplatePreviewScreen() {
       </ScrollView>
 
       {/* Bottom Action Buttons */}
-      <View style={styles.bottomActions}>
+      <View style={[
+        styles.bottomActions,
+        { backgroundColor: colorScheme === 'dark' ? '#151718' : '#fff' }
+      ]}>
         <Pressable
           style={[
             styles.button,
@@ -193,7 +183,10 @@ export default function TemplatePreviewScreen() {
             { backgroundColor: Colors[colorScheme ?? 'light'].tint },
           ]}
           onPress={handleUseTemplate}>
-          <ThemedText style={styles.useButtonText}>Usar Template</ThemedText>
+          <ThemedText style={[
+            styles.useButtonText,
+            { color: '#ffffff' }
+          ]}>Usar Template</ThemedText>
         </Pressable>
       </View>
 
@@ -207,6 +200,17 @@ export default function TemplatePreviewScreen() {
           style={styles.modalOverlay}
           onPress={closeFullImage}
           activeOpacity={1}>
+          {/* Close Button */}
+          <Pressable
+            style={styles.closeButton}
+            onPress={closeFullImage}>
+            <IconSymbol
+              name="xmark"
+              size={24}
+              color="#ffffff"
+            />
+          </Pressable>
+
           <Animated.View
             style={[
               styles.fullImageContainer,
@@ -223,17 +227,6 @@ export default function TemplatePreviewScreen() {
               />
             )}
           </Animated.View>
-
-          {/* Close Button */}
-          <Pressable
-            style={styles.closeButton}
-            onPress={closeFullImage}>
-            <IconSymbol
-              name="xmark"
-              size={24}
-              color="#ffffff"
-            />
-          </Pressable>
         </Pressable>
       </Modal>
     </ThemedView>
@@ -244,23 +237,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  backText: {
-    fontSize: 17,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
+    paddingTop: 20,
     paddingBottom: 100,
   },
   templateInfo: {
@@ -302,10 +283,14 @@ const styles = StyleSheet.create({
   imageWrapper: {
     height: 250,
     position: 'relative',
+    overflow: 'hidden',
   },
   previewImage: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   overlayGradient: {
     position: 'absolute',
@@ -357,7 +342,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: 32,
-    backgroundColor: 'transparent',
   },
   button: {
     flex: 1,
@@ -378,7 +362,6 @@ const styles = StyleSheet.create({
     flex: 1.5,
   },
   useButtonText: {
-    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },

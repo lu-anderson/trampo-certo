@@ -8,6 +8,7 @@ import {
   View,
   useColorScheme as useRNColorScheme,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -86,31 +87,36 @@ export default function TemplatesScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
-          Templates
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Escolha um template para seu orçamento
-        </ThemedText>
-      </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ThemedView style={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.title}>
+            Templates
+          </ThemedText>
+          <ThemedText style={styles.subtitle}>
+            Escolha um template para seu orçamento
+          </ThemedText>
+        </View>
 
-      {/* Templates List */}
-      <FlatList
-        data={templates}
-        renderItem={renderTemplateCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
-    </ThemedView>
+        {/* Templates List */}
+        <FlatList
+          data={templates}
+          renderItem={renderTemplateCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
   },
   header: {
