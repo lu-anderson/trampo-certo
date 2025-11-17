@@ -16,7 +16,7 @@ import {
 } from '@/utils/validation';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -31,6 +31,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createCompanyInfo, getCompanyInfo } from '@/_service/company';
+import {
+  getCompanyInfoFromCache,
+  saveCompanyInfoToCache,
+  getLogoFromDevice,
+  saveLogoToDevice,
+} from '@/_service/cache';
 
 interface FormData {
   logo: string;
@@ -74,9 +80,15 @@ export default function CompanyInfoScreen() {
   const params = useLocalSearchParams();
 
   // Parse required fields from URL params
-  const requiredFields: CompanyInfoField[] = params.required
-    ? (params.required as string).split(',') as CompanyInfoField[]
-    : ['name', 'email', 'phone'];
+  const requiredFields: CompanyInfoField[] = useMemo(() => {
+    return params.required
+      ? (params.required as string).split(',') as CompanyInfoField[]
+      : ['name', 'email', 'phone'];
+  }, [params.required]);
+
+  const isFieldRequired = useCallback((field: CompanyInfoField): boolean => {
+    return requiredFields.includes(field);
+  }, [requiredFields]);
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -117,10 +129,28 @@ export default function CompanyInfoScreen() {
       if (!user) return;
 
       try {
-        const companyInfo = await getCompanyInfo(user.uid);
+        // First, try to load from cache
+        let companyInfo = await getCompanyInfoFromCache();
+        
+        // If no cache, load from Firebase
+        if (!companyInfo) {
+          companyInfo = await getCompanyInfo(user.uid);
+          
+          // Save to cache for future use
+          if (companyInfo) {
+            await saveCompanyInfoToCache(companyInfo);
+          }
+        }
+        
         if (companyInfo) {
+          // Try to load logo from device if logo field is required
+          let logoUri = '';
+          if (isFieldRequired('logo')) {
+            logoUri = await getLogoFromDevice() || '';
+          }
+          
           setFormData({
-            logo: companyInfo.logo || '',
+            logo: logoUri,
             name: companyInfo.name || '',
             document: companyInfo.document || '',
             email: companyInfo.email || '',
@@ -143,11 +173,7 @@ export default function CompanyInfoScreen() {
     }
 
     loadCompanyInfo();
-  }, [user]);
-
-  const isFieldRequired = (field: CompanyInfoField): boolean => {
-    return requiredFields.includes(field);
-  };
+  }, [user, isFieldRequired]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -165,11 +191,12 @@ export default function CompanyInfoScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
-      base64: true,
     });
 
-    if (!result.canceled && result.assets[0].base64) {
-      setFormData({ ...formData, logo: `data:image/jpeg;base64,${result.assets[0].base64}` });
+    if (!result.canceled && result.assets[0].uri) {
+      // Save the image URI directly (it's already on the device)
+      const imageUri = result.assets[0].uri;
+      setFormData({ ...formData, logo: imageUri });
       if (errors.logo) {
         setErrors({ ...errors, logo: '' });
       }
@@ -286,8 +313,19 @@ export default function CompanyInfoScreen() {
 
     setLoading(true);
     try {
-      await createCompanyInfo(user.uid, {
-        logo: formData.logo || undefined,
+      // Handle logo: save to device and get reference
+      let logoReference = '';
+      if (formData.logo && formData.logo.startsWith('file://')) {
+        // New logo selected - copy to app's document directory
+        logoReference = await saveLogoToDevice(formData.logo);
+      } else if (formData.logo) {
+        // Existing logo - keep the reference
+        logoReference = formData.logo;
+      }
+      
+      // Prepare company data for Firestore (without full image data)
+      const companyData = {
+        logo: logoReference || undefined,
         name: formData.name,
         document: formData.document || undefined,
         email: formData.email,
@@ -304,7 +342,44 @@ export default function CompanyInfoScreen() {
         socialMedia: isFieldRequired('socialMedia') ? {
           instagram: formData.instagram || undefined,
         } : undefined,
+      };
+      
+      // Load cached data to compare
+      const cachedInfo = await getCompanyInfoFromCache();
+      
+      // Check if data has changed
+      const hasChanges = !cachedInfo || JSON.stringify({
+        name: cachedInfo.name,
+        document: cachedInfo.document,
+        email: cachedInfo.email,
+        phone: cachedInfo.phone,
+        address: cachedInfo.address,
+        socialMedia: cachedInfo.socialMedia,
+        logo: cachedInfo.logo,
+      }) !== JSON.stringify({
+        name: companyData.name,
+        document: companyData.document,
+        email: companyData.email,
+        phone: companyData.phone,
+        address: companyData.address,
+        socialMedia: companyData.socialMedia,
+        logo: companyData.logo,
       });
+      
+      // Only save to Firebase if there are changes
+      if (hasChanges) {
+        await createCompanyInfo(user.uid, companyData);
+      }
+      
+      // Always update cache with current data
+      const updatedInfo = {
+        id: user.uid,
+        userId: user.uid,
+        ...companyData,
+        createdAt: cachedInfo?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await saveCompanyInfoToCache(updatedInfo);
 
       // Navigate to budget creation screen (placeholder for now)
       router.push('/(tabs)');
@@ -349,10 +424,11 @@ export default function CompanyInfoScreen() {
 
               <View style={styles.formSection}>
                 {/* Logo */}
+                {/* Logo */}
                 {isFieldRequired('logo') && (
                   <View style={styles.inputContainer}>
                     <ThemedText style={styles.inputLabel}>
-                      Logo {isFieldRequired('logo') ? '*' : ''}
+                      Logo *
                     </ThemedText>
                     <TouchableOpacity
                       style={[styles.logoButton, { borderColor: errors.logo ? '#ff4444' : iconColor }]}
@@ -373,39 +449,41 @@ export default function CompanyInfoScreen() {
                 )}
 
                 {/* Name */}
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>
-                    Nome {isFieldRequired('name') ? '*' : ''}
-                  </ThemedText>
-                  <TextInput
-                    style={[
-                      styles.textInput,
-                      {
-                        borderColor: errors.name ? '#ff4444' : iconColor,
-                        color: textColor,
-                      },
-                    ]}
-                    placeholder="Nome da empresa ou profissional"
-                    placeholderTextColor={iconColor}
-                    value={formData.name}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, name: text });
-                      if (errors.name) {
-                        setErrors({ ...errors, name: '' });
-                      }
-                    }}
-                    autoCapitalize="words"
-                  />
-                  {errors.name ? (
-                    <ThemedText style={styles.errorText}>{errors.name}</ThemedText>
-                  ) : null}
-                </View>
+                {isFieldRequired('name') && (
+                  <View style={styles.inputContainer}>
+                    <ThemedText style={styles.inputLabel}>
+                      Nome *
+                    </ThemedText>
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        {
+                          borderColor: errors.name ? '#ff4444' : iconColor,
+                          color: textColor,
+                        },
+                      ]}
+                      placeholder="Nome da empresa ou profissional"
+                      placeholderTextColor={iconColor}
+                      value={formData.name}
+                      onChangeText={(text) => {
+                        setFormData({ ...formData, name: text });
+                        if (errors.name) {
+                          setErrors({ ...errors, name: '' });
+                        }
+                      }}
+                      autoCapitalize="words"
+                    />
+                    {errors.name ? (
+                      <ThemedText style={styles.errorText}>{errors.name}</ThemedText>
+                    ) : null}
+                  </View>
+                )}
 
                 {/* Document */}
                 {isFieldRequired('document') && (
                   <View style={styles.inputContainer}>
                     <ThemedText style={styles.inputLabel}>
-                      CPF/CNPJ {isFieldRequired('document') ? '*' : ''}
+                      CPF/CNPJ *
                     </ThemedText>
                     <TextInput
                       style={[
@@ -434,64 +512,68 @@ export default function CompanyInfoScreen() {
                 )}
 
                 {/* Email */}
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>
-                    Email {isFieldRequired('email') ? '*' : ''}
-                  </ThemedText>
-                  <TextInput
-                    style={[
-                      styles.textInput,
-                      {
-                        borderColor: errors.email ? '#ff4444' : iconColor,
-                        color: textColor,
-                      },
-                    ]}
-                    placeholder="seu@email.com"
-                    placeholderTextColor={iconColor}
-                    value={formData.email}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, email: text });
-                      if (errors.email) {
-                        setErrors({ ...errors, email: '' });
-                      }
-                    }}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                  {errors.email ? (
-                    <ThemedText style={styles.errorText}>{errors.email}</ThemedText>
-                  ) : null}
-                </View>
+                {isFieldRequired('email') && (
+                  <View style={styles.inputContainer}>
+                    <ThemedText style={styles.inputLabel}>
+                      Email *
+                    </ThemedText>
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        {
+                          borderColor: errors.email ? '#ff4444' : iconColor,
+                          color: textColor,
+                        },
+                      ]}
+                      placeholder="seu@email.com"
+                      placeholderTextColor={iconColor}
+                      value={formData.email}
+                      onChangeText={(text) => {
+                        setFormData({ ...formData, email: text });
+                        if (errors.email) {
+                          setErrors({ ...errors, email: '' });
+                        }
+                      }}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                    {errors.email ? (
+                      <ThemedText style={styles.errorText}>{errors.email}</ThemedText>
+                    ) : null}
+                  </View>
+                )}
 
                 {/* Phone */}
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>
-                    Telefone {isFieldRequired('phone') ? '*' : ''}
-                  </ThemedText>
-                  <TextInput
-                    style={[
-                      styles.textInput,
-                      {
-                        borderColor: errors.phone ? '#ff4444' : iconColor,
-                        color: textColor,
-                      },
-                    ]}
-                    placeholder="(00) 00000-0000"
-                    placeholderTextColor={iconColor}
-                    value={formData.phone}
-                    onChangeText={(text) => {
-                      const formatted = formatPhone(text);
-                      setFormData({ ...formData, phone: formatted });
-                      if (errors.phone) {
-                        setErrors({ ...errors, phone: '' });
-                      }
-                    }}
-                    keyboardType="phone-pad"
-                  />
-                  {errors.phone ? (
-                    <ThemedText style={styles.errorText}>{errors.phone}</ThemedText>
-                  ) : null}
-                </View>
+                {isFieldRequired('phone') && (
+                  <View style={styles.inputContainer}>
+                    <ThemedText style={styles.inputLabel}>
+                      Telefone *
+                    </ThemedText>
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        {
+                          borderColor: errors.phone ? '#ff4444' : iconColor,
+                          color: textColor,
+                        },
+                      ]}
+                      placeholder="(00) 00000-0000"
+                      placeholderTextColor={iconColor}
+                      value={formData.phone}
+                      onChangeText={(text) => {
+                        const formatted = formatPhone(text);
+                        setFormData({ ...formData, phone: formatted });
+                        if (errors.phone) {
+                          setErrors({ ...errors, phone: '' });
+                        }
+                      }}
+                      keyboardType="phone-pad"
+                    />
+                    {errors.phone ? (
+                      <ThemedText style={styles.errorText}>{errors.phone}</ThemedText>
+                    ) : null}
+                  </View>
+                )}
 
                 {/* Address Section */}
                 {isFieldRequired('address') && (
