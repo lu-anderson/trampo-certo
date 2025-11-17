@@ -1,12 +1,17 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
+import { useRouter } from 'expo-router';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const tintColor = useThemeColor({}, 'tint');
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -36,6 +41,17 @@ export default function HomeScreen() {
           Em breve você poderá gerenciar seus orçamentos e trabalhos por aqui!
         </ThemedText>
       </ThemedView>
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">Teste</ThemedText>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: tintColor }]}
+          onPress={() => router.push('/company-info?required=name,email,phone,document,address,socialMedia,logo')}
+        >
+          <ThemedText style={styles.buttonText}>
+            Ir para Informações da Empresa
+          </ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
     </ParallaxScrollView>
   );
 }
@@ -55,5 +71,18 @@ const styles = StyleSheet.create({
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+  },
+  button: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

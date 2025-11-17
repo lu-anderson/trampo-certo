@@ -40,6 +40,13 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app precisa acessar suas fotos para permitir o upload da logo da empresa.",
+          "cameraPermission": "O app precisa acessar a câmera para tirar foto da logo da empresa."
+        }
       ]
     ],
     "experiments": {
