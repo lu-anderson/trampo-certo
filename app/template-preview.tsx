@@ -10,6 +10,7 @@ import {
   View,
   useColorScheme as useRNColorScheme,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -71,13 +72,14 @@ export default function TemplatePreviewScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      {/* Template Preview */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        {/* Template Info */}
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ThemedView style={styles.content}>
+        {/* Template Preview */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
+          {/* Template Info */}
         <View style={styles.templateInfo}>
           <ThemedText type="title" style={styles.templateName}>
             {template.name}
@@ -180,7 +182,11 @@ export default function TemplatePreviewScreen() {
           style={[
             styles.button,
             styles.useButton,
-            { backgroundColor: Colors[colorScheme ?? 'light'].tint },
+            { 
+              backgroundColor: colorScheme === 'dark' 
+                ? '#0a7ea4'  // Use light mode tint color for visibility in dark mode
+                : Colors[colorScheme ?? 'light'].tint 
+            },
           ]}
           onPress={handleUseTemplate}>
           <ThemedText style={[
@@ -229,12 +235,16 @@ export default function TemplatePreviewScreen() {
           </Animated.View>
         </Pressable>
       </Modal>
-    </ThemedView>
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
   },
   scrollView: {

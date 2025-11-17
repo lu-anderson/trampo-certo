@@ -34,7 +34,10 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <RootLayoutNav />
-        <StatusBar style="auto" />
+        <StatusBar 
+          style="auto" 
+          backgroundColor={colorScheme === 'dark' ? '#151718' : '#fff'}
+        />
       </ThemeProvider>
     </AuthProvider>
   );
