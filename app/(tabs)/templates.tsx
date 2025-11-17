@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import {
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   View,
@@ -38,19 +39,14 @@ export default function TemplatesScreen() {
           pressed && styles.templateCardPressed,
         ]}
         onPress={() => handleTemplatePress(item)}>
-        {/* Template Preview Box */}
-        <View
-          style={[
-            styles.previewBox,
-            { backgroundColor: item.layout.colors.primary },
-          ]}>
-          <IconSymbol
-            name="doc.text.fill"
-            size={48}
-            color="#ffffff"
-            style={styles.previewIcon}
+        {/* Template Preview Image */}
+        {item.thumbnailUrl && (
+          <Image
+            source={item.thumbnailUrl}
+            style={styles.previewImage}
+            resizeMode="cover"
           />
-        </View>
+        )}
 
         {/* Template Info */}
         <View style={styles.templateInfo}>
@@ -153,16 +149,11 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
   },
-  previewBox: {
+  previewImage: {
     width: 80,
     height: 100,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 16,
-  },
-  previewIcon: {
-    opacity: 0.8,
   },
   templateInfo: {
     flex: 1,

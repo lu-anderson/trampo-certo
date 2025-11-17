@@ -11,6 +11,7 @@ export const MOCK_TEMPLATES: BudgetTemplate[] = [
     id: 'template-1-modern',
     name: 'Moderno',
     description: 'Design moderno e minimalista, ideal para serviços de tecnologia e design',
+    thumbnailUrl: require('@/assets/images/template-1.png'),
     category: 'modern',
     isActive: true,
     layout: {
@@ -31,6 +32,7 @@ export const MOCK_TEMPLATES: BudgetTemplate[] = [
     id: 'template-2-classic',
     name: 'Clássico',
     description: 'Estilo tradicional e elegante, perfeito para serviços profissionais',
+    thumbnailUrl: require('@/assets/images/template-2.png'),
     category: 'classic',
     isActive: true,
     layout: {
@@ -51,6 +53,7 @@ export const MOCK_TEMPLATES: BudgetTemplate[] = [
     id: 'template-3-minimal',
     name: 'Minimalista',
     description: 'Clean e direto ao ponto, ótimo para freelancers',
+    thumbnailUrl: require('@/assets/images/template-3.png'),
     category: 'minimal',
     isActive: true,
     layout: {
@@ -71,6 +74,7 @@ export const MOCK_TEMPLATES: BudgetTemplate[] = [
     id: 'template-4-professional',
     name: 'Profissional',
     description: 'Layout corporativo e confiável para grandes projetos',
+    thumbnailUrl: require('@/assets/images/template-4.png'),
     category: 'professional',
     isActive: true,
     layout: {
@@ -91,6 +95,7 @@ export const MOCK_TEMPLATES: BudgetTemplate[] = [
     id: 'template-5-colorful',
     name: 'Criativo',
     description: 'Vibrante e colorido, ideal para áreas criativas',
+    thumbnailUrl: require('@/assets/images/template-5.png'),
     category: 'colorful',
     isActive: true,
     layout: {

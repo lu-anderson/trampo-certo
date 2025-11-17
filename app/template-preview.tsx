@@ -1,6 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  Animated,
+  Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +21,8 @@ export default function TemplatePreviewScreen() {
   const { templateId } = useLocalSearchParams<{ templateId: string }>();
   const colorScheme = useRNColorScheme();
   const template = templateId ? getMockTemplateById(templateId) : null;
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [scaleAnim] = useState(new Animated.Value(0));
 
   if (!template) {
     return (
@@ -40,6 +45,27 @@ export default function TemplatePreviewScreen() {
 
   const handleBack = () => {
     router.back();
+  };
+
+  const openFullImage = () => {
+    setShowFullImage(true);
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  };
+
+  const closeFullImage = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start(() => {
+      setShowFullImage(false);
+    });
   };
 
   return (
@@ -88,51 +114,30 @@ export default function TemplatePreviewScreen() {
           </View>
         </View>
 
-        {/* Full Size Preview */}
-        <View
-          style={[
-            styles.previewContainer,
-            { backgroundColor: template.layout.colors.primary },
-          ]}>
-          <View style={styles.previewContent}>
+        {/* Image Preview with Tap Instruction */}
+        <Pressable onPress={openFullImage} style={styles.imagePreviewContainer}>
+          {template.thumbnailUrl && (
+            <View style={styles.imageWrapper}>
+              <Image
+                source={template.thumbnailUrl}
+                style={styles.previewImage}
+                resizeMode="cover"
+              />
+              <View style={styles.overlayGradient} />
+            </View>
+          )}
+          <View style={styles.tapInstructionContainer}>
             <IconSymbol
-              name="doc.text.fill"
-              size={120}
-              color="#ffffff"
-              style={styles.previewIcon}
+              name="hand.tap.fill"
+              size={20}
+              color={Colors[colorScheme ?? 'light'].tint}
+              style={styles.tapIcon}
             />
-            <ThemedText
-              style={[styles.previewText, { color: '#ffffff' }]}>
-              Visualização do Template
-            </ThemedText>
-            <ThemedText
-              style={[styles.previewSubtext, { color: 'rgba(255, 255, 255, 0.8)' }]}>
-              Este é um preview em tela cheia do template selecionado
+            <ThemedText style={styles.tapInstruction}>
+              Toque na imagem para visualizar em tela cheia
             </ThemedText>
           </View>
-
-          {/* Color Scheme Preview */}
-          <View style={styles.colorScheme}>
-            <View
-              style={[
-                styles.colorBox,
-                { backgroundColor: template.layout.colors.primary },
-              ]}
-            />
-            <View
-              style={[
-                styles.colorBox,
-                { backgroundColor: template.layout.colors.secondary },
-              ]}
-            />
-            <View
-              style={[
-                styles.colorBox,
-                { backgroundColor: template.layout.colors.accent },
-              ]}
-            />
-          </View>
-        </View>
+        </Pressable>
 
         {/* Template Details */}
         <View style={styles.detailsSection}>
@@ -191,6 +196,46 @@ export default function TemplatePreviewScreen() {
           <ThemedText style={styles.useButtonText}>Usar Template</ThemedText>
         </Pressable>
       </View>
+
+      {/* Full Screen Image Modal */}
+      <Modal
+        visible={showFullImage}
+        transparent
+        animationType="none"
+        onRequestClose={closeFullImage}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={closeFullImage}
+          activeOpacity={1}>
+          <Animated.View
+            style={[
+              styles.fullImageContainer,
+              {
+                transform: [{ scale: scaleAnim }],
+                opacity: scaleAnim,
+              },
+            ]}>
+            {template.thumbnailUrl && (
+              <Image
+                source={template.thumbnailUrl}
+                style={styles.fullImage}
+                resizeMode="contain"
+              />
+            )}
+          </Animated.View>
+
+          {/* Close Button */}
+          <Pressable
+            style={styles.closeButton}
+            onPress={closeFullImage}>
+            <IconSymbol
+              name="xmark"
+              size={24}
+              color="#ffffff"
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ThemedView>
   );
 }
@@ -240,11 +285,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.8,
   },
-  previewContainer: {
+  imagePreviewContainer: {
     marginHorizontal: 20,
     borderRadius: 16,
     overflow: 'hidden',
-    minHeight: 400,
     marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: {
@@ -255,41 +299,38 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 8,
   },
-  previewContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+  imageWrapper: {
+    height: 250,
+    position: 'relative',
   },
-  previewIcon: {
-    opacity: 0.9,
-    marginBottom: 16,
+  previewImage: {
+    width: '100%',
+    height: '100%',
   },
-  previewText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
+  overlayGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    backgroundColor: 'transparent',
   },
-  previewSubtext: {
-    fontSize: 14,
-    textAlign: 'center',
-    opacity: 0.9,
-  },
-  colorScheme: {
+  tapInstructionContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    gap: 8,
   },
-  colorBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+  tapIcon: {
+    opacity: 0.7,
+  },
+  tapInstruction: {
+    fontSize: 13,
+    opacity: 0.7,
+    fontStyle: 'italic',
   },
   detailsSection: {
     paddingHorizontal: 20,
@@ -340,5 +381,33 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImageContainer: {
+    width: '90%',
+    height: '80%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
 });

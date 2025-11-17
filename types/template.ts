@@ -2,11 +2,13 @@
  * Budget Template type definitions
  */
 
+import type { ImageSourcePropType } from 'react-native';
+
 export interface BudgetTemplate {
   id: string;
   name: string;
   description: string;
-  thumbnailUrl?: string; // Optional - URL to preview image
+  thumbnailUrl?: ImageSourcePropType; // Optional - local image or URL
   category: 'modern' | 'classic' | 'minimal' | 'professional' | 'colorful';
   isActive: boolean;
   layout: TemplateLayout;
