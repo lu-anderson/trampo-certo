@@ -34,14 +34,8 @@ export default function TemplatePreviewScreen() {
   }
 
   const handleUseTemplate = () => {
-    // TODO: Navigate to budget creation screen with template ID
-    // For now, just show an alert or navigate back
     console.log('Using template:', template.id);
-    // router.push({
-    //   pathname: '/budgets/new',
-    //   params: { templateId: template.id },
-    // });
-    router.back();
+    router.push('/company-info?required=name');
   };
 
 
