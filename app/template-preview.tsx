@@ -35,7 +35,7 @@ export default function TemplatePreviewScreen() {
 
   const handleUseTemplate = () => {
     console.log('Using template:', template.id);
-    router.push('/company-info?required=name');
+    router.push('/company-info?required=name,document,address,phone,email,logo,socialMedia');
   };
 
 
