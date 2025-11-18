@@ -20,6 +20,7 @@ function RootLayoutNav() {
             presentation: 'modal'
           }} 
         />
+        <Stack.Screen name="company-info" options={{ headerShown: false }} />
       </Stack.Protected>
 
       <Stack.Screen name="(public)" options={{ headerShown: false }} />
