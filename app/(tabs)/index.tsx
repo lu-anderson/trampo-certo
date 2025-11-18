@@ -56,16 +56,4 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  button: {
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
 });
