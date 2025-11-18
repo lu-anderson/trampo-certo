@@ -1,8 +1,15 @@
+import {
+  getCompanyInfoFromCache,
+  getLogoFromDevice,
+  saveCompanyInfoToCache,
+  saveLogoToDevice,
+} from '@/_service/cache';
+import { createCompanyInfo, getCompanyInfo } from '@/_service/company';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/auth-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import type { CompanyInfoField } from '@/types/company';
+import type { CompanyInfo, CompanyInfoField, CreateCompanyInfoData } from '@/types/company';
 import {
   formatDocument,
   formatInstagram,
@@ -16,7 +23,7 @@ import {
 } from '@/utils/validation';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -30,13 +37,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { createCompanyInfo, getCompanyInfo } from '@/_service/company';
-import {
-  getCompanyInfoFromCache,
-  saveCompanyInfoToCache,
-  getLogoFromDevice,
-  saveLogoToDevice,
-} from '@/_service/cache';
 
 interface FormData {
   logo: string;
@@ -325,23 +325,23 @@ export default function CompanyInfoScreen() {
       
       // Prepare company data for Firestore (without full image data)
       const companyData = {
-        logo: logoReference || undefined,
+        logo: logoReference || "",
         name: formData.name,
-        document: formData.document || undefined,
+        document: formData.document || "",
         email: formData.email,
         phone: formData.phone,
         address: isFieldRequired('address') ? {
           street: formData.street,
           number: formData.number,
-          complement: formData.complement || undefined,
+          complement: formData.complement || "",
           neighborhood: formData.neighborhood,
           city: formData.city,
           state: formData.state,
           zipCode: formData.zipCode,
-        } : undefined,
+        } : "",
         socialMedia: isFieldRequired('socialMedia') ? {
-          instagram: formData.instagram || undefined,
-        } : undefined,
+          instagram: formData.instagram || "",
+        } : "",
       };
       
       // Load cached data to compare
@@ -368,7 +368,7 @@ export default function CompanyInfoScreen() {
       
       // Only save to Firebase if there are changes
       if (hasChanges) {
-        await createCompanyInfo(user.uid, companyData);
+        await createCompanyInfo(user.uid, companyData as CreateCompanyInfoData);
       }
       
       // Always update cache with current data
@@ -379,7 +379,7 @@ export default function CompanyInfoScreen() {
         createdAt: cachedInfo?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      await saveCompanyInfoToCache(updatedInfo);
+      await saveCompanyInfoToCache(updatedInfo as CompanyInfo);
 
       // Navigate to budget creation screen (placeholder for now)
       router.push('/(tabs)');
