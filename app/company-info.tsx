@@ -79,7 +79,6 @@ export default function CompanyInfoScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  // Parse required fields from URL params
   const requiredFields: CompanyInfoField[] = useMemo(() => {
     return params.required
       ? (params.required as string).split(',') as CompanyInfoField[]
@@ -123,27 +122,22 @@ export default function CompanyInfoScreen() {
     instagram: '',
   });
 
-  // Load existing company info if available
   useEffect(() => {
     async function loadCompanyInfo() {
       if (!user) return;
 
       try {
-        // First, try to load from cache
         let companyInfo = await getCompanyInfoFromCache();
         
-        // If no cache, load from Firebase
         if (!companyInfo) {
           companyInfo = await getCompanyInfo(user.uid);
-          
-          // Save to cache for future use
+
           if (companyInfo) {
             await saveCompanyInfoToCache(companyInfo);
           }
         }
         
         if (companyInfo) {
-          // Try to load logo from device if logo field is required
           let logoUri = '';
           if (isFieldRequired('logo')) {
             logoUri = await getLogoFromDevice() || '';
@@ -194,7 +188,6 @@ export default function CompanyInfoScreen() {
     });
 
     if (!result.canceled && result.assets[0].uri) {
-      // Save the image URI directly (it's already on the device)
       const imageUri = result.assets[0].uri;
       setFormData({ ...formData, logo: imageUri });
       if (errors.logo) {
@@ -221,13 +214,11 @@ export default function CompanyInfoScreen() {
 
     let isValid = true;
 
-    // Validate name
     if (isFieldRequired('name') && !formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
       isValid = false;
     }
 
-    // Validate document
     if (isFieldRequired('document')) {
       if (!formData.document.trim()) {
         newErrors.document = 'CPF/CNPJ é obrigatório';
@@ -238,7 +229,6 @@ export default function CompanyInfoScreen() {
       }
     }
 
-    // Validate email
     if (isFieldRequired('email')) {
       if (!formData.email.trim()) {
         newErrors.email = 'Email é obrigatório';
@@ -249,7 +239,6 @@ export default function CompanyInfoScreen() {
       }
     }
 
-    // Validate phone
     if (isFieldRequired('phone')) {
       if (!formData.phone.trim()) {
         newErrors.phone = 'Telefone é obrigatório';
@@ -260,7 +249,6 @@ export default function CompanyInfoScreen() {
       }
     }
 
-    // Validate address if required
     if (isFieldRequired('address')) {
       if (!formData.street.trim()) {
         newErrors.street = 'Rua é obrigatória';
@@ -291,7 +279,6 @@ export default function CompanyInfoScreen() {
       }
     }
 
-    // Validate social media if required
     if (isFieldRequired('socialMedia') && formData.instagram && !validateInstagram(formData.instagram)) {
       newErrors.instagram = 'Instagram inválido';
       isValid = false;
@@ -323,7 +310,6 @@ export default function CompanyInfoScreen() {
         logoReference = formData.logo;
       }
       
-      // Prepare company data for Firestore (without full image data)
       const companyData = {
         logo: logoReference || "",
         name: formData.name,
@@ -343,11 +329,9 @@ export default function CompanyInfoScreen() {
           instagram: formData.instagram || "",
         } : "",
       };
-      
-      // Load cached data to compare
+
       const cachedInfo = await getCompanyInfoFromCache();
       
-      // Check if data has changed
       const hasChanges = !cachedInfo || JSON.stringify({
         name: cachedInfo.name,
         document: cachedInfo.document,
@@ -366,12 +350,10 @@ export default function CompanyInfoScreen() {
         logo: companyData.logo,
       });
       
-      // Only save to Firebase if there are changes
       if (hasChanges) {
         await createCompanyInfo(user.uid, companyData as CreateCompanyInfoData);
       }
       
-      // Always update cache with current data
       const updatedInfo = {
         id: user.uid,
         userId: user.uid,
@@ -381,7 +363,6 @@ export default function CompanyInfoScreen() {
       };
       await saveCompanyInfoToCache(updatedInfo as CompanyInfo);
 
-      // Navigate to budget creation screen (placeholder for now)
       router.push('/(tabs)');
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar as informações');
@@ -423,8 +404,6 @@ export default function CompanyInfoScreen() {
               </View>
 
               <View style={styles.formSection}>
-                {/* Logo */}
-                {/* Logo */}
                 {isFieldRequired('logo') && (
                   <View style={styles.inputContainer}>
                     <ThemedText style={styles.inputLabel}>
