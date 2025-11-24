@@ -6,11 +6,16 @@ import 'react-native-reanimated';
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/global.css';
+
 function RootLayoutNav() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Stack>
+    
+    <GluestackUIProvider mode="dark">
+      <Stack>
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen 
@@ -24,6 +29,8 @@ function RootLayoutNav() {
 
       <Stack.Screen name="(public)" options={{ headerShown: false }} />
     </Stack>
+    </GluestackUIProvider>
+  
   );
 }
 

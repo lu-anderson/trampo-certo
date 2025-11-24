@@ -12,13 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-export default function RegisterScreen() {
+export default function LoginScreen() {
   const router = useRouter();
-
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -27,27 +24,13 @@ export default function RegisterScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* HEADER */}
+        {/* Header azul */}
         <View style={styles.header}>
           <Text style={styles.title}>Trampo Certo</Text>
-          <Text style={styles.subtitle}>Crie sua conta</Text>
+          <Text style={styles.subtitle}>Entre na sua conta</Text>
         </View>
 
-        {/* FORM */}
-        <View style={styles.container}>
-
-          {/* NOME */}
-          <Text style={styles.label}>Nome</Text>
-          <View style={styles.inputBox}>
-            <TextInput
-              style={styles.input}
-              placeholder="Seu nome"
-              placeholderTextColor="#9CA3AF"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
-
+        <View style={styles.content}>
           {/* EMAIL */}
           <Text style={styles.label}>Email</Text>
           <View style={styles.inputBox}>
@@ -56,10 +39,12 @@ export default function RegisterScreen() {
               placeholder="seuemail@gmail.com"
               placeholderTextColor="#9CA3AF"
               value={email}
-              onChangeText={setEmail}
               autoCapitalize="none"
-              keyboardType="email-address"
+              onChangeText={setEmail}
             />
+            <TouchableOpacity>
+              <Text style={styles.edit}>Editar</Text>
+            </TouchableOpacity>
           </View>
 
           {/* SENHA */}
@@ -67,12 +52,13 @@ export default function RegisterScreen() {
           <View style={styles.inputBox}>
             <TextInput
               style={styles.input}
-              secureTextEntry={!showPassword}
-              placeholder="Crie uma senha"
+              placeholder="Digite sua senha"
               placeholderTextColor="#9CA3AF"
+              secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
             />
+
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
@@ -82,43 +68,58 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* CONFIRMAR */}
-          <Text style={styles.label}>Confirmar senha</Text>
-          <View style={styles.inputBox}>
-            <TextInput
-              style={styles.input}
-              secureTextEntry={!showPassword}
-              placeholder="Repita a senha"
-              placeholderTextColor="#9CA3AF"
-              value={confirm}
-              onChangeText={setConfirm}
-            />
-          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/(public)/forgot-password")}
+          >
+            <Text style={styles.forgot}>Esqueceu sua senha?</Text>
+          </TouchableOpacity>
 
           {/* BOTÃO */}
           <TouchableOpacity style={styles.primaryButton}>
-            <Text style={styles.primaryText}>Criar conta</Text>
+            <Text style={styles.primaryText}>Continuar</Text>
           </TouchableOpacity>
 
-          {/* LINK LOGIN */}
-          <Text style={styles.loginText}>
-            Já tem uma conta?{" "}
+          {/* Criar conta */}
+          <Text style={styles.registerText}>
+            Não tem uma conta?{" "}
             <Text
-              style={styles.loginLink}
-              onPress={() => router.push("/(public)/login")}
+              style={styles.registerLink}
+              onPress={() => router.push("/(public)/register")}
             >
-              Entrar
+              Criar conta
             </Text>
           </Text>
 
+          {/* Divider */}
+          <View style={styles.dividerBox}>
+            <View style={styles.line} />
+            <Text style={styles.or}>OU</Text>
+            <View style={styles.line} />
+          </View>
+
+          {/* SOCIAL BUTTONS — usando os ícones que você já tinha */}
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-google" size={20} color="#2563EB" />
+            <Text style={styles.socialText}>Continuar com Google</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-apple" size={20} color="#000" />
+            <Text style={styles.socialText}>Continuar com Apple</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-microsoft" size={20} color="#2563EB" />
+            <Text style={styles.socialText}>Continuar com Microsoft</Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const BLUE_700 = "#1D4ED8"; // fundo e botão principal
-const BLUE_500 = "#3B82F6"; // links e elementos secundários
+const BLUE_700 = "#1D4ED8";
+const BLUE_500 = "#3B82F6";
 
 const styles = StyleSheet.create({
   header: {
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 16,
   },
-  container: {
+  content: {
     paddingHorizontal: 24,
     paddingTop: 28,
   },
@@ -154,9 +155,9 @@ const styles = StyleSheet.create({
     borderColor: "#E4E9F2",
     borderRadius: 12,
     height: 50,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
     marginBottom: 18,
   },
   input: {
@@ -164,27 +165,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#111",
   },
+  edit: {
+    color: BLUE_500,
+    fontWeight: "500",
+  },
+  forgot: {
+    color: BLUE_500,
+    fontWeight: "500",
+    fontSize: 14,
+    marginBottom: 18,
+  },
   primaryButton: {
     backgroundColor: BLUE_700,
     height: 52,
     borderRadius: 26,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 12,
+    marginTop: 8,
   },
   primaryText: {
     color: "#fff",
     fontSize: 17,
     fontWeight: "600",
   },
-  loginText: {
+  registerText: {
     textAlign: "center",
     marginTop: 16,
     fontSize: 14,
     color: "#6B7280",
   },
-  loginLink: {
+  registerLink: {
     color: BLUE_500,
     fontWeight: "600",
+  },
+  dividerBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 26,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E5E7EB",
+  },
+  or: {
+    marginHorizontal: 12,
+    color: "#6B7280",
+    fontSize: 14,
+  },
+  socialButton: {
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#F5F7FA",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 14,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  socialText: {
+    marginLeft: 12,
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#111",
   },
 });

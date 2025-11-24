@@ -92,10 +92,9 @@ export class AuthService {
     return this.auth.currentUser;
   }
 
-
   /**
- * Maps Firebase auth error codes to user-friendly Portuguese messages
- */
+   * Maps Firebase auth error codes to user-friendly Portuguese messages
+   */
   private handleAuthError(errorCode: string): string {
     const errorMessages: Record<string, string> = {
       'auth/email-already-in-use': 'Este email já está em uso. Tente fazer login ou use outro email.',
@@ -111,5 +110,9 @@ export class AuthService {
     };
 
     return errorMessages[errorCode] || 'Ocorreu um erro inesperado. Tente novamente.';
-  } 
+  }
 }
+
+// Create and export authService instance
+import { auth } from './firebase';
+export const authService = new AuthService(auth);

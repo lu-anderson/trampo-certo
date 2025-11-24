@@ -5,7 +5,6 @@ import { firestore } from './firebase';
 /**
  * Firestore Database Service
  */
-
 const COLLECTIONS = {
   USERS: 'users',
 } as const;
@@ -21,14 +20,12 @@ export async function createUserProfile(data: {
 }): Promise<void> {
   try {
     const userRef = doc(firestore, COLLECTIONS.USERS, data.uid);
-
     const userProfile: UserProfile = {
       uid: data.uid,
       name: data.name,
       email: data.email,
       createdAt: new Date().toISOString(),
     };
-
     await setDoc(userRef, userProfile);
   } catch (error) {
     console.error('Error creating user profile:', error);
@@ -43,11 +40,9 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   try {
     const userRef = doc(firestore, COLLECTIONS.USERS, uid);
     const userSnap = await getDoc(userRef);
-
     if (userSnap.exists()) {
       return userSnap.data() as UserProfile;
     }
-
     return null;
   } catch (error) {
     console.error('Error getting user profile:', error);

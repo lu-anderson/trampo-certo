@@ -1,251 +1,166 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useAuthActions } from '@/hooks/use-auth-actions';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 export default function ForgotPasswordScreen() {
-  const textColor = useThemeColor({}, 'text');
-  const tintColor = useThemeColor({}, 'tint');
-  const iconColor = useThemeColor({}, 'icon');
-  const backgroundColor = useThemeColor({}, 'background');
-
   const router = useRouter();
-  const { resetPassword, loading } = useAuthActions();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [email, setEmail] = useState('');
-  const [errors, setErrors] = useState({
-    email: '',
-  });
-  const [successMessage, setSuccessMessage] = useState('');
-
-  const validateForm = () => {
-    const newErrors = {
-      email: '',
-    };
-
-    let isValid = true;
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email.trim()) {
-      newErrors.email = 'Email é obrigatório';
-      isValid = false;
-    } else if (!emailRegex.test(email)) {
-      newErrors.email = 'Email inválido';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const handleResetPassword = async () => {
-    setErrors({ email: '' });
-    setSuccessMessage('');
-
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      await resetPassword(email);
-      setSuccessMessage('Email enviado! Verifique sua caixa de entrada para redefinir sua senha.');
-      setEmail('');
-    } catch (e: any) {
-      setErrors({ email: e.message || 'Não foi possível enviar o email de recuperação.' });
-    }
+  const handleSend = async () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      router.push("/(public)/login");
+    }, 1500);
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <SafeAreaView style={styles.safeArea}>
-          <ThemedView style={styles.content}>
 
-          <View style={styles.headerSection}>
-            <View style={[styles.logoPlaceholder, { borderColor: iconColor }]}>
-              <ThemedText style={styles.logoText}>LOGO</ThemedText>
-            </View>
-            <ThemedText type="title" style={[styles.welcomeText, { color: textColor }]}>
-              Recuperar Senha
-            </ThemedText>
-            <ThemedText style={[styles.subtitleText, { color: iconColor }]}>
-              Digite seu email para receber instruções
-            </ThemedText>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Trampo Certo</Text>
+          <Text style={styles.subtitle}>Recuperar senha</Text>
+        </View>
+
+        {/* FORM */}
+        <View style={styles.container}>
+
+          <Text style={styles.description}>
+            Digite seu email e enviaremos instruções para redefinir sua senha.
+          </Text>
+
+          {/* INPUT */}
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputBox}>
+            <TextInput
+              style={styles.input}
+              placeholder="seuemail@gmail.com"
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
           </View>
 
-          <View style={styles.formSection}>
-            {successMessage ? (
-              <View style={[styles.successContainer, { backgroundColor: '#efe', borderColor: '#cfc' }]}>
-                <ThemedText style={[styles.successText, { color: '#0a0' }]}>
-                  {successMessage}
-                </ThemedText>
-              </View>
-            ) : null}
+          {/* BUTTON */}
+          <TouchableOpacity
+            style={[styles.primaryButton, { opacity: loading ? 0.7 : 1 }]}
+            onPress={handleSend}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.primaryText}>Enviar email</Text>
+            )}
+          </TouchableOpacity>
 
-            <View style={styles.inputContainer}>
-              <ThemedText style={styles.inputLabel}>Email</ThemedText>
-              <TextInput
-                style={[styles.textInput, { 
-                  borderColor: iconColor, 
-                  color: textColor 
-                }]}
-                placeholder="Digite seu email"
-                placeholderTextColor={iconColor}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                value={email}
-                onChangeText={setEmail}
-                editable={!loading}
-              />
-              {errors.email ? (
-                <ThemedText style={styles.errorText}>
-                  {errors.email}
-                </ThemedText>
-              ) : null}
-            </View>
-          </View>
-
-          <View style={styles.buttonSection}>
-            <TouchableOpacity 
-              style={[styles.resetButton, { backgroundColor: tintColor, opacity: loading ? 0.7 : 1 }]}
-              onPress={handleResetPassword}
-              disabled={loading}
+          {/* VOLTAR */}
+          <Text style={styles.backText}>
+            Lembrou sua senha?{" "}
+            <Text
+              style={styles.backLink}
+              onPress={() => router.push("/(public)/login")}
             >
-              {loading ? (
-                <ActivityIndicator color={backgroundColor} />
-              ) : (
-                <ThemedText style={[styles.resetButtonText, { color: backgroundColor }]}>
-                  Enviar Email
-                </ThemedText>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.backButton, { borderColor: tintColor }]}
-              onPress={() => router.back()}
-              disabled={loading}
-            >
-              <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
-                Voltar
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-        </ThemedView>
-      </SafeAreaView>
+              Voltar para login
+            </Text>
+          </Text>
+        </View>
       </KeyboardAvoidingView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
+const BLUE_700 = "#1D4ED8";
+const BLUE_500 = "#3B82F6";
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
+  header: {
+    backgroundColor: BLUE_700,
     paddingHorizontal: 24,
-    justifyContent: 'center',
+    paddingVertical: 48,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 48,
+  title: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "700",
   },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoText: {
+  subtitle: {
+    color: "#e5e7eb",
+    marginTop: 6,
     fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 2,
   },
-  welcomeText: {
-    marginBottom: 8,
-    textAlign: 'center',
+  container: {
+    paddingHorizontal: 24,
+    paddingTop: 28,
   },
-  subtitleText: {
-    fontSize: 16,
-    textAlign: 'center',
+  description: {
+    fontSize: 15,
+    color: "#374151",
+    marginBottom: 26,
   },
-  formSection: {
-    marginBottom: 32,
-  },
-  successContainer: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  successText: {
+  label: {
     fontSize: 14,
-    textAlign: 'center',
+    color: "#374151",
+    marginBottom: 6,
+    fontWeight: "500",
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  textInput: {
-    borderWidth: 1.5,
+  inputBox: {
+    backgroundColor: "#F5F7FA",
+    borderWidth: 1,
+    borderColor: "#E4E9F2",
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    marginBottom: 22,
+  },
+  input: {
+    flex: 1,
     fontSize: 16,
-    minHeight: 48,
+    color: "#111",
   },
-  errorText: {
-    color: '#ff4444',
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+  primaryButton: {
+    backgroundColor: BLUE_700,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
   },
-  buttonSection: {
-    gap: 16,
-    marginBottom: 32,
+  primaryText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "600",
   },
-  resetButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
+  backText: {
+    textAlign: "center",
+    marginTop: 16,
+    color: "#6B7280",
+    fontSize: 14,
   },
-  resetButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButton: {
-    borderRadius: 12,
-    borderWidth: 1.5,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  backLink: {
+    color: BLUE_500,
+    fontWeight: "600",
   },
 });
