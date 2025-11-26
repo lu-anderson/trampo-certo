@@ -1,0 +1,90 @@
+{
+  "id": "02",
+  "name": "Template Elegante Spa & Estética",
+  "description": "Design sofisticado e minimalista, perfeito para centros de estética, spas e clínicas de beleza.",
+  "category": "professional",
+  "isActive": true,
+  "createdAt": "2023-10-27T10:00:00Z",
+  "thumbnailUrl": "template-2.png",
+  "layout": {
+    "colors": {
+      "primary": "#8B7E74",
+      "secondary": "#E8E4DF",
+      "accent": "#A8B5A0"
+    },
+    "fonts": {
+      "heading": "serif",
+      "body": "serif"
+    }
+  },
+  "fields": [
+    {
+      "key": "budgetNumber",
+      "label": "Número do Orçamento",
+      "type": "text",
+      "required": true,
+      "placeholder": "Ex: Nº 76327",
+      "defaultValue": ""
+    },
+    {
+      "key": "client",
+      "label": "Cliente",
+      "type": "idRef",
+      "idRef": "client",
+      "required": true
+    },
+    {
+      "key": "validity",
+      "label": "Válido até",
+      "type": "date",
+      "required": true,
+      "placeholder": "Data de validade"
+    },
+    {
+      "key": "service",
+      "label": "Serviço",
+      "type": "text",
+      "required": true,
+      "placeholder": "Descrição do serviço"
+    },
+    {
+      "key": "items",
+      "label": "Procedimentos/Serviços",
+      "type": "list",
+      "required": true
+    },
+    {
+      "key": "paymentMethod",
+      "label": "Forma de Pagamento",
+      "type": "options",
+      "required": true,
+      "options": [
+        "Débito",
+        "Pix",
+        "Dinheiro",
+        "Cartão de Crédito até 4x"
+      ]
+    },
+    {
+      "key": "observations",
+      "label": "Observações",
+      "type": "text",
+      "required": false,
+      "placeholder": "Observações adicionais sobre o orçamento"
+    },
+    {
+      "key": "attendant",
+      "label": "Atendimento realizado por",
+      "type": "text",
+      "required": false,
+      "placeholder": "Nome do profissional responsável"
+    }
+  ],
+  "companyInfoFields": [
+    "logo",
+    "name",
+    "address",
+    "phone",
+    "email"
+  ]
+}

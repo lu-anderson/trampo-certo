@@ -1,5 +1,11 @@
-export const renderTemplate1 = (data: any) => {
-  const { 
+import type { TemplateRenderData } from './index';
+
+/**
+ * Legacy function - kept for backward compatibility
+ * @deprecated Use renderTemplate1 with TemplateRenderData instead
+ */
+export const renderTemplate1Legacy = (data: any) => {
+  const {
     title,
     service,
     date = new Date().toLocaleDateString('pt-BR'),
@@ -13,6 +19,7 @@ export const renderTemplate1 = (data: any) => {
     phone,
     email,
     socialMedia,
+    logoBase64,
   } = data;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -304,3 +311,49 @@ export const renderTemplate1 = (data: any) => {
   </body>
 </html>`
 }
+
+/**
+ * Standardized template renderer using TemplateRenderData
+ * This is the new recommended way to render template-1
+ */
+export const renderTemplate1 = (data: TemplateRenderData, logoBase64?: string): string => {
+  // Helper to format date fields
+  const formatDate = (value: any): string => {
+    if (value instanceof Date) {
+      return value.toLocaleDateString('pt-BR');
+    }
+    return value || '';
+  };
+
+  // Helper to format array fields
+  const formatArray = (value: any): string => {
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    return value || '';
+  };
+
+  // Map standardized data to legacy format
+  return renderTemplate1Legacy({
+    title: data.budgetInfo.budgetName,
+    service: data.budgetInfo.fieldValues['service'] || '',
+    date: data.budgetInfo.date,
+    type: 'Orçamento',
+    clientName: data.budgetInfo.client.name,
+    items: data.budgetInfo.items,
+    deadlineDescription: data.budgetInfo.fieldValues['deadline']
+      ? `Prazo de entrega: ${formatDate(data.budgetInfo.fieldValues['deadline'])}`
+      : '',
+    paymentDescription: data.budgetInfo.fieldValues['payment']
+      ? `Formas de pagamento: ${formatArray(data.budgetInfo.fieldValues['payment'])}`
+      : '',
+    startJobDescription: data.budgetInfo.fieldValues['startConditions'] || '',
+    budgetValidityDescription: data.budgetInfo.fieldValues['validity']
+      ? `Válido até: ${formatDate(data.budgetInfo.fieldValues['validity'])}`
+      : '',
+    phone: data.companyInfo.phone || '',
+    email: data.companyInfo.email || '',
+    socialMedia: data.companyInfo.socialMedia?.instagram || '',
+    logoBase64,
+  });
+};

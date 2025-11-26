@@ -6,7 +6,7 @@ import { DynamicInput } from '@/components/DynamicInput';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { renderTemplate1 } from '@/templates/template-1';
+import { renderTemplate } from '@/templates';
 import type { BudgetItem, BudgetTemplate, Client, TemplateField } from '@/types/template';
 import { Ionicons } from '@expo/vector-icons';
 import { useImageManipulator } from 'expo-image-manipulator';
@@ -182,7 +182,7 @@ export default function BudgetDetailsPage() {
   };
 
   const generateHTMLWithLogo = useCallback(async (): Promise<string> => {
-    let base64Logo = null;
+    let base64Logo;
 
     if (logoUri && context) {
       try {
@@ -194,40 +194,47 @@ export default function BudgetDetailsPage() {
       }
     }
 
-    // Format fields for template
-    const deadline = formValues['deadline'] instanceof Date
-      ? formValues['deadline'].toLocaleDateString('pt-BR')
-      : '';
+    // Get template ID
+    const templateId = template?.id || '01';
 
-    const validity = formValues['validity'] instanceof Date
-      ? formValues['validity'].toLocaleDateString('pt-BR')
-      : '';
+    // TODO: Get company info from cache
+    // For now, using empty values
+    const companyInfo = {
+      name: 'Sua Empresa',
+      logo: '',
+      phone: '',
+      email: '',
+      address: {
+        street: '',
+        number: '',
+        complement: '',
+        district: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        neighborhood: '',
+      },
+      socialMedia: {
+        instagram: '',
+      },
+    };
 
-    const payment = Array.isArray(formValues['payment'])
-      ? formValues['payment'].join(', ')
-      : formValues['payment'];
+    // Build standardized data structure
+    const templateData = {
+      companyInfo,
+      budgetInfo: {
+        budgetName,
+        date: new Date().toLocaleDateString('pt-BR'),
+        client: selectedClient!,
+        fieldValues: formValues,
+        items,
+      },
+    };
 
-    return renderTemplate1({
-      title: budgetName,
-      service: formValues['service'] || '',
-      date: new Date().toLocaleDateString('pt-BR'),
-      type: 'Orçamento',
-      clientName: selectedClient?.name || '',
-      items: items.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-      })),
-      deadlineDescription: deadline ? `Prazo de entrega: ${deadline}` : '',
-      paymentDescription: payment ? `Formas de pagamento: ${payment}` : '',
-      startJobDescription: '',
-      budgetValidityDescription: validity ? `Válido até: ${validity}` : '',
-      phone: selectedClient?.phone || '',
-      email: selectedClient?.email || '',
-      socialMedia: '',
-      logoBase64: base64Logo || undefined,
-    });
-  }, [logoUri, context, budgetName, formValues, selectedClient, items]);
+    // Use centralized render function - automatically selects correct template
+
+    return renderTemplate(templateId, templateData, base64Logo);
+  }, [logoUri, context, budgetName, formValues, selectedClient, items, template]);
 
   const printToFile = async () => {
     if (!validateForm()) return;

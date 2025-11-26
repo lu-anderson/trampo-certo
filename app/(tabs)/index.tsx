@@ -7,22 +7,37 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
 import template1Data from '@/templates/template-1.json';
+import template2Data from '@/templates/template-2.json';
 import type { BudgetTemplate } from '@/types/template';
 import { useState } from 'react';
 
 export default function HomeScreen() {
   const [saving, setSaving] = useState(false);
+  const [saving2, setSaving2] = useState(false);
 
   const handleSaveTemplate = async () => {
     setSaving(true);
     try {
       await saveTemplate(template1Data as BudgetTemplate);
-      Alert.alert('Sucesso', 'Template salvo no Firebase!');
+      Alert.alert('Sucesso', 'Template 1 salvo no Firebase!');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar o template');
+      Alert.alert('Erro', 'Não foi possível salvar o template 1');
       console.error(error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveTemplate2 = async () => {
+    setSaving2(true);
+    try {
+      await saveTemplate(template2Data as BudgetTemplate);
+      Alert.alert('Sucesso', 'Template 2 salvo no Firebase!');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível salvar o template 2');
+      console.error(error);
+    } finally {
+      setSaving2(false);
     }
   };
 
@@ -64,6 +79,15 @@ export default function HomeScreen() {
           disabled={saving}>
           <ThemedText style={styles.saveButtonText}>
             {saving ? 'Salvando...' : 'Salvar Template 1 no Firebase'}
+          </ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.saveButton, { backgroundColor: '#28a745', marginTop: 12 }]}
+          onPress={handleSaveTemplate2}
+          disabled={saving2}>
+          <ThemedText style={styles.saveButtonText}>
+            {saving2 ? 'Salvando...' : 'Salvar Template 2 no Firebase'}
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
