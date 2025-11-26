@@ -13,14 +13,21 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="template-preview" 
-          options={{ 
+        <Stack.Screen
+          name="template-preview"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="client-modal"
+          options={{
             headerShown: false,
             presentation: 'modal'
-          }} 
+          }}
         />
         <Stack.Screen name="company-info" options={{ headerShown: false }} />
+        <Stack.Screen name="budget-details" options={{ headerShown: false }} />
       </Stack.Protected>
 
       <Stack.Screen name="(public)" options={{ headerShown: false }} />

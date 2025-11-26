@@ -1,0 +1,83 @@
+{
+  "id": "01",
+  "name": "Template Minimalista Com Logo",
+  "description": "Template simples porém moderno, ótimo para pintores, pedreiros e outros profissionais.",
+  "category": "minimal",
+  "isActive": true,
+  "createdAt": "2023-10-27T10:00:00Z",
+  "layout": {
+    "colors": {
+      "primary": "#1e5aa0",
+      "secondary": "#f3f4f6",
+      "accent": "#93c5fd"
+    },
+    "fonts": {
+      "heading": "Inter",
+      "body": "Inter"
+    }
+  },
+  "fields": [
+    {
+      "key": "name",
+      "label": "Nome do Orçamento/Proposta",
+      "type": "text",
+      "required": true,
+      "placeholder": "Nome do Orçamento/Proposta",
+      "defaultValue": "Orçamento"
+    },
+    {
+      "key": "client",
+      "label": "Cliente",
+      "type": "idRef",
+      "idRef": "client",
+      "required": true
+    },
+    {
+      "key": "service",
+      "label": "Serviço",
+      "type": "text",
+      "required": true,
+      "placeholder": "Ex: Pintura Residencial"
+    },
+    {
+      "key": "items",
+      "label": "Itens/Serviço",
+      "type": "list",
+      "required": true
+    },
+    {
+      "key": "deadline",
+      "label": "Prazo",
+      "type": "text",
+      "required": true,
+      "placeholder": "Fale sobre o prazo de entrega"
+    },
+    {
+      "key": "payment",
+      "label": "Pagamento",
+      "type": "text",
+      "required": true,
+      "placeholder": "Fale sobre o pagamento"
+    },
+    {
+      "key": "startConditions",
+      "label": "Condições de início",
+      "type": "text",
+      "required": false,
+      "placeholder": "Fale sobre as condições de início/entrega"
+    },
+    {
+      "key": "validity",
+      "label": "Validade do orçamento",
+      "type": "text",
+      "required": true,
+      "placeholder": "Ex: 20 dias corridos"
+    }
+  ],
+  "companyInfoFields": [
+    "logo",
+    "phone",
+    "email",
+    "socialMedia"
+  ]
+}
