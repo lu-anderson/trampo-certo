@@ -2,7 +2,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuthActions } from '@/hooks/use-auth-actions';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -30,6 +32,8 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState({
     name: '',
@@ -94,161 +98,198 @@ export default function RegisterScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <StatusBar style="light" backgroundColor="#1A54D4" />
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <SafeAreaView style={styles.safeArea}>
-          <ScrollView 
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: '#1A54D4' }]} edges={['top']}>
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <ThemedView style={styles.content}>
-              <View style={styles.headerSection}>
-                <View style={[styles.logoPlaceholder, { borderColor: iconColor }]}>
-                  <ThemedText style={styles.logoText}>LOGO</ThemedText>
-                </View>
-                <ThemedText type="title" style={[styles.titleText, { color: textColor }]}>
-                  Criar conta
-                </ThemedText>
-                <ThemedText style={[styles.subtitleText, { color: iconColor }]}>
-                  Preencha os dados para se cadastrar
-                </ThemedText>
+            {/* Blue Header */}
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <ThemedText style={styles.headerTitle} type='title'>Trampo Certo</ThemedText>
+                <ThemedText style={styles.headerSubtitle}>Crie sua conta</ThemedText>
               </View>
+            </View>
 
-              <View style={styles.formSection}>
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>Nome (Pessoal/Empresa)</ThemedText>
-                  <TextInput
-                    style={[styles.textInput, { 
-                      borderColor: errors.name ? '#ff4444' : iconColor, 
-                      color: textColor 
-                    }]}
-                    placeholder="Digite seu nome ou nome da empresa"
-                    placeholderTextColor={iconColor}
-                    value={name}
-                    onChangeText={(text) => {
-                      setName(text);
-                      if (errors.name) {
-                        setErrors({ ...errors, name: '' });
-                      }
-                    }}
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                  />
+            {/* White Form Section */}
+            <View style={[styles.formContainer, { backgroundColor }]}>
+              <View style={styles.formContent}>
+
+                {/* Name Input */}
+                <View style={styles.inputSection}>
+                  <ThemedText style={[styles.inputLabel, { color: textColor }]}>Nome</ThemedText>
+                  <View style={[styles.inputContainer, { backgroundColor: '#F5F7FA' }]}>
+                    <TextInput
+                      style={[styles.textInput, {
+                        color: textColor
+                      }]}
+                      placeholder="Seu nome"
+                      placeholderTextColor="#9ca3af"
+                      value={name}
+                      onChangeText={(text) => {
+                        setName(text);
+                        if (errors.name) {
+                          setErrors({ ...errors, name: '' });
+                        }
+                      }}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
+                  </View>
                   {errors.name ? (
                     <ThemedText style={styles.errorText}>{errors.name}</ThemedText>
                   ) : null}
                 </View>
 
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>Email</ThemedText>
-                  <TextInput
-                    style={[styles.textInput, { 
-                      borderColor: errors.email ? '#ff4444' : iconColor, 
-                      color: textColor 
-                    }]}
-                    placeholder="Digite seu email"
-                    placeholderTextColor={iconColor}
-                    value={email}
-                    onChangeText={(text) => {
-                      setEmail(text);
-                      if (errors.email) {
-                        setErrors({ ...errors, email: '' });
-                      }
-                    }}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
+                {/* Email Input */}
+                <View style={styles.inputSection}>
+                  <ThemedText style={[styles.inputLabel, { color: textColor }]}>Email</ThemedText>
+                  <View style={[styles.inputContainer, { backgroundColor: '#F5F7FA' }]}>
+                    <TextInput
+                      style={[styles.textInput, {
+                        color: textColor
+                      }]}
+                      placeholder="seuemail@gmail.com"
+                      placeholderTextColor="#9ca3af"
+                      value={email}
+                      onChangeText={(text) => {
+                        setEmail(text);
+                        if (errors.email) {
+                          setErrors({ ...errors, email: '' });
+                        }
+                      }}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
+                  </View>
                   {errors.email ? (
                     <ThemedText style={styles.errorText}>{errors.email}</ThemedText>
                   ) : null}
                 </View>
 
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>Senha</ThemedText>
-                  <TextInput
-                    style={[styles.textInput, { 
-                      borderColor: errors.password ? '#ff4444' : iconColor, 
-                      color: textColor 
-                    }]}
-                    placeholder="Digite sua senha"
-                    placeholderTextColor={iconColor}
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      if (errors.password) {
-                        setErrors({ ...errors, password: '' });
-                      }
-                    }}
-                    secureTextEntry={true}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
+                {/* Password Input */}
+                <View style={styles.inputSection}>
+                  <ThemedText style={[styles.inputLabel, { color: textColor }]}>Senha</ThemedText>
+                  <View style={[styles.inputContainer, { backgroundColor: '#F5F7FA' }]}>
+                    <TextInput
+                      style={[styles.textInput, {
+                        color: textColor
+                      }]}
+                      placeholder="Crie uma senha"
+                      placeholderTextColor="#9ca3af"
+                      value={password}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        if (errors.password) {
+                          setErrors({ ...errors, password: '' });
+                        }
+                      }}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={24}
+                        color={iconColor}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   {errors.password ? (
                     <ThemedText style={styles.errorText}>{errors.password}</ThemedText>
                   ) : null}
                 </View>
 
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>Confirmar Senha</ThemedText>
-                  <TextInput
-                    style={[styles.textInput, { 
-                      borderColor: errors.confirmPassword ? '#ff4444' : iconColor, 
-                      color: textColor 
-                    }]}
-                    placeholder="Digite sua senha novamente"
-                    placeholderTextColor={iconColor}
-                    value={confirmPassword}
-                    onChangeText={(text) => {
-                      setConfirmPassword(text);
-                      if (errors.confirmPassword) {
-                        setErrors({ ...errors, confirmPassword: '' });
-                      }
-                    }}
-                    secureTextEntry={true}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
+                {/* Confirm Password Input */}
+                <View style={styles.inputSection}>
+                  <ThemedText style={[styles.inputLabel, { color: textColor }]}>Confirmar senha</ThemedText>
+                  <View style={[styles.inputContainer, { backgroundColor: '#F5F7FA' }]}>
+                    <TextInput
+                      style={[styles.textInput, {
+                        color: textColor
+                      }]}
+                      placeholder="Repita a senha"
+                      placeholderTextColor="#9ca3af"
+                      value={confirmPassword}
+                      onChangeText={(text) => {
+                        setConfirmPassword(text);
+                        if (errors.confirmPassword) {
+                          setErrors({ ...errors, confirmPassword: '' });
+                        }
+                      }}
+                      secureTextEntry={!showConfirmPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
+                    {/* No eye button for confirm password in the design, but good UX to have? 
+                         The design doesn't explicitly show it for confirm, but usually it's there. 
+                         I'll leave it out for confirm to match the image strictly if needed, 
+                         but the image only shows the password field having it. 
+                         Wait, the image shows "Senha" with eye, and "Confirmar senha" without eye?
+                         Actually, standard practice is to have it. But I will follow the image.
+                         The image shows "Senha" with the eye icon. "Confirmar senha" is below it.
+                         I will add it if it makes sense, but let's stick to the image.
+                         Actually, let's just not add it to confirm password to be safe with "igual a imagem".
+                     */}
+                  </View>
                   {errors.confirmPassword ? (
                     <ThemedText style={styles.errorText}>{errors.confirmPassword}</ThemedText>
                   ) : null}
                 </View>
-              </View>
 
-              <View style={styles.buttonSection}>
-                {signUpError ? (
-                  <ThemedText style={styles.errorText}>
-                    {signUpError}
-                  </ThemedText>
-                ) : null}
-                <TouchableOpacity 
-                  style={[styles.registerButton, { backgroundColor: tintColor }]}
-                  onPress={handleRegister}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color={backgroundColor} />
-                  ) : (
-                    <ThemedText style={[styles.registerButtonText, { color: backgroundColor }]}>
-                      Cadastrar
+                <View style={styles.buttonSection}>
+                  {signUpError ? (
+                    <ThemedText style={styles.errorText}>
+                      {signUpError}
                     </ThemedText>
-                  )}
-                </TouchableOpacity>
+                  ) : null}
 
-                <TouchableOpacity 
-                  style={[styles.backButton, { borderColor: tintColor }]}
-                  onPress={() => router.back()}
-                  disabled={loading}
-                >
-                  <ThemedText style={[styles.backButtonText, { color: tintColor }]}>
-                    Voltar para login
-                  </ThemedText>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.registerButton, { backgroundColor: tintColor }]}
+                    onPress={handleRegister}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color={backgroundColor} />
+                    ) : (
+                      <ThemedText style={[styles.registerButtonText, { color: '#ffffff' }]}>
+                        Criar conta
+                      </ThemedText>
+                    )}
+                  </TouchableOpacity>
+
+                  <View style={styles.loginContainer}>
+                    <ThemedText style={[styles.loginText, { color: iconColor }]}>
+                      Já tem uma conta?{' '}
+                    </ThemedText>
+                    <TouchableOpacity
+                      onPress={() => router.back()}
+                      disabled={loading}
+                    >
+                      <ThemedText style={[styles.loginLink, { color: tintColor }]}>
+                        Entrar
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
-            </ThemedView>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -268,73 +309,81 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    backgroundColor: '#1A54D4', // Match header background for overscroll
   },
   scrollContent: {
     flexGrow: 1,
   },
-  content: {
-    flex: 1,
+  header: {
+    backgroundColor: '#FFF',
+  },
+  headerContent: {
     paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingTop: 40, // Adjusted for spacing
+    paddingBottom: 40,
+    backgroundColor: '#1A54D4',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  headerSection: {
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 32,
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
   },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoText: {
+  headerSubtitle: {
     fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 2,
+    color: '#ffffff',
+    opacity: 0.9,
   },
-  titleText: {
-    marginBottom: 8,
-    textAlign: 'center',
+  formContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: 32,
   },
-  subtitleText: {
-    fontSize: 16,
-    textAlign: 'center',
+  formContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
-  formSection: {
-    marginBottom: 24,
-  },
-  inputContainer: {
+  inputSection: {
     marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
     marginBottom: 8,
   },
-  textInput: {
-    borderWidth: 1.5,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#E8ECF4',
+    backgroundColor: '#F5F7FA',
+  },
+  textInput: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 15,
     minHeight: 48,
   },
+  eyeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+  },
   errorText: {
-    color: '#ff4444',
+    color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
   },
   buttonSection: {
+    marginTop: 12,
     gap: 16,
-    marginBottom: 32,
   },
   registerButton: {
-    borderRadius: 12,
+    borderRadius: 25,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -344,16 +393,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  backButton: {
-    borderRadius: 12,
-    borderWidth: 1.5,
-    paddingVertical: 16,
+  loginContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
+    marginTop: 8,
   },
-  backButtonText: {
-    fontSize: 16,
+  loginText: {
+    fontSize: 14,
+  },
+  loginLink: {
+    fontSize: 14,
     fontWeight: '600',
   },
 });
