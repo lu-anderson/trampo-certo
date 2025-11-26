@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   Pressable,
@@ -10,16 +11,33 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { getActiveTemplates } from '@/_service/template';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { getMockTemplates } from '@/constants/templates';
 import { Colors } from '@/constants/theme';
 import type { BudgetTemplate } from '@/types/template';
 
 export default function TemplatesScreen() {
   const colorScheme = useRNColorScheme();
-  const templates = getMockTemplates();
+  const [templates, setTemplates] = useState<BudgetTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      setLoading(true);
+      const fetchedTemplates = await getActiveTemplates();
+      setTemplates(fetchedTemplates);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTemplatePress = (template: BudgetTemplate) => {
     router.push({
@@ -43,7 +61,7 @@ export default function TemplatesScreen() {
         {/* Template Preview Image */}
         {item.thumbnailUrl && (
           <Image
-            source={item.thumbnailUrl}
+            source={typeof item.thumbnailUrl === 'number' ? item.thumbnailUrl : { uri: item.thumbnailUrl }}
             style={styles.previewImage}
             resizeMode="cover"
           />
@@ -99,14 +117,28 @@ export default function TemplatesScreen() {
           </ThemedText>
         </View>
 
-        {/* Templates List */}
-        <FlatList
-          data={templates}
-          renderItem={renderTemplateCard}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        {/* Loading State */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
+            <ThemedText style={styles.loadingText}>Carregando templates...</ThemedText>
+          </View>
+        ) : templates.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <ThemedText style={styles.emptyText}>
+              Nenhum template disponível no momento
+            </ThemedText>
+          </View>
+        ) : (
+          /* Templates List */
+          <FlatList
+            data={templates}
+            renderItem={renderTemplateCard}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </ThemedView>
     </SafeAreaView>
   );
@@ -130,6 +162,28 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
   },
   listContent: {
     paddingHorizontal: 20,

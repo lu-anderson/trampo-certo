@@ -1,5 +1,5 @@
 import { useThemeColor } from '@/hooks/use-theme-color';
-import type { FieldType } from '@/types/template';
+import type { FieldType, IdRefType } from '@/types/template';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
@@ -13,6 +13,9 @@ interface DynamicInputProps {
   options?: string[];
   placeholder?: string;
   required?: boolean;
+  idRef?: IdRefType;
+  onIdRefPress?: () => void; // Callback for idRef type
+  idRefDisplayValue?: string; // Display value for selected idRef
 }
 
 export function DynamicInput({
@@ -23,6 +26,9 @@ export function DynamicInput({
   options = [],
   placeholder,
   required = false,
+  idRef,
+  onIdRefPress,
+  idRefDisplayValue,
 }: DynamicInputProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -35,6 +41,18 @@ export function DynamicInput({
 
   const renderInput = () => {
     switch (type) {
+      case 'idRef':
+        return (
+          <TouchableOpacity
+            style={[styles.idRefButton, { backgroundColor, borderColor }]}
+            onPress={onIdRefPress}>
+            <Text style={[styles.idRefText, { color: idRefDisplayValue ? textColor : borderColor }]}>
+              {idRefDisplayValue || `Selecionar ${label}`}
+            </Text>
+            <Ionicons name="chevron-down" size={20} color={borderColor} />
+          </TouchableOpacity>
+        );
+
       case 'options':
         return (
           <View style={styles.optionsContainer}>
@@ -162,6 +180,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
+    fontSize: 16,
+  },
+  idRefButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+  },
+  idRefText: {
     fontSize: 16,
   },
   optionsContainer: {

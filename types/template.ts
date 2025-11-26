@@ -2,7 +2,6 @@
  * Budget Template type definitions
  */
 
-import type { ImageSourcePropType } from 'react-native';
 
 export interface Client {
   id: string;
@@ -40,10 +39,10 @@ export interface BudgetTemplate {
   description: string;
   fields: TemplateField[]; // Ordered list of fields to render
   companyInfoFields: string[]; // Required company info fields (e.g., ['logo', 'phone', 'email', 'socialMedia'])
-  thumbnailUrl?: ImageSourcePropType;
+  thumbnailUrl?: string | number; // String (filename) from Firebase or number (require result) for local assets
   category: 'modern' | 'classic' | 'minimal' | 'professional' | 'colorful';
   isActive: boolean;
-  layout: TemplateLayout[];
+  layout: TemplateLayout;
   createdAt: string;
 }
 

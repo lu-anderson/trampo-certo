@@ -5,6 +5,7 @@
   "category": "minimal",
   "isActive": true,
   "createdAt": "2023-10-27T10:00:00Z",
+  "thumbnailUrl": "template-1.png",
   "layout": {
     "colors": {
       "primary": "#1e5aa0",

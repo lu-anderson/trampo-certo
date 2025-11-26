@@ -1,12 +1,13 @@
 import { getLogoFromDevice } from '@/_service/cache';
 import { getClients } from '@/_service/client';
 import { auth } from '@/_service/firebase';
+import { getTemplateById } from '@/_service/template';
 import { DynamicInput } from '@/components/DynamicInput';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { renderTemplate1 } from '@/templates/template-1';
-import type { BudgetItem, Client, TemplateField } from '@/types/template';
+import type { BudgetItem, BudgetTemplate, Client, TemplateField } from '@/types/template';
 import { Ionicons } from '@expo/vector-icons';
 import { useImageManipulator } from 'expo-image-manipulator';
 import * as Print from 'expo-print';
@@ -27,7 +28,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Template Configuration
+// Template Configuration - Fallback if no template is provided
 const TEMPLATE_FIELDS: TemplateField[] = [
   { key: 'service', label: 'Serviço', type: 'text', required: true, placeholder: 'Ex: Desenvolvimento Web' },
   { key: 'items', label: 'Itens / Serviços', type: 'list', required: true },
@@ -50,6 +51,8 @@ export default function BudgetDetailsPage() {
   const [logoUri, setLogoUri] = useState<string | null>(null);
   const context = useImageManipulator(logoUri || 'placeholder');
   const [loading, setLoading] = useState(false);
+  const [templateLoading, setTemplateLoading] = useState(true);
+  const [template, setTemplate] = useState<BudgetTemplate | null>(null);
 
   // Form State
   const [budgetName, setBudgetName] = useState('Orçamento');
@@ -63,24 +66,42 @@ export default function BudgetDetailsPage() {
   // Items State (Special handling for list type)
   const [items, setItems] = useState<BudgetItem[]>([]);
 
-  // Filter fields based on params
+  // Load template if templateId is provided
+  useEffect(() => {
+    loadTemplate();
+  }, [params.templateId]);
+
+  const loadTemplate = async () => {
+    const templateId = params.templateId as string;
+    if (!templateId) {
+      setTemplateLoading(false);
+      return;
+    }
+
+    try {
+      setTemplateLoading(true);
+      const fetchedTemplate = await getTemplateById(templateId);
+      setTemplate(fetchedTemplate);
+    } catch (error) {
+      console.error('Error loading template:', error);
+      Alert.alert('Erro', 'Não foi possível carregar o template');
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  // Filter fields based on template or params
   const visibleFields = useMemo(() => {
-    if (!params.fields) return TEMPLATE_FIELDS;
-    const keys = (params.fields as string).split(',');
-    // Filter TEMPLATE_FIELDS
-    const templateFields = TEMPLATE_FIELDS.filter(f => keys.includes(f.key));
-
-    // Add pseudo-fields for name and client if present in keys
-    const extraFields: TemplateField[] = [];
-    if (keys.includes('name')) {
-      extraFields.push({ key: 'name', label: 'Nome do Orçamento', type: 'text', required: false });
+    if (template) {
+      // Use template fields
+      return template.fields;
+    } else if (params.fields) {
+      // Fallback to params-based filtering
+      const keys = (params.fields as string).split(',');
+      return TEMPLATE_FIELDS.filter(f => keys.includes(f.key));
     }
-    if (keys.includes('client')) {
-      extraFields.push({ key: 'client', label: 'Cliente', type: 'text', required: true });
-    }
-
-    return [...extraFields, ...templateFields];
-  }, [params.fields]);
+    return TEMPLATE_FIELDS;
+  }, [template, params.fields]);
 
   useEffect(() => {
     loadLogo();
@@ -135,14 +156,15 @@ export default function BudgetDetailsPage() {
   };
 
   const validateForm = () => {
-    if (!selectedClient) {
-      Alert.alert('Atenção', 'Selecione um cliente.');
-      return false;
-    }
-
     for (const field of visibleFields) {
       if (field.required) {
-        if (field.type === 'list') {
+        // Handle idRef type (e.g., client)
+        if (field.type === 'idRef' && field.idRef === 'client') {
+          if (!selectedClient) {
+            Alert.alert('Atenção', `O campo ${field.label} é obrigatório.`);
+            return false;
+          }
+        } else if (field.type === 'list') {
           if (items.length === 0) {
             Alert.alert('Atenção', `O campo ${field.label} é obrigatório.`);
             return false;
@@ -223,6 +245,15 @@ export default function BudgetDetailsPage() {
     }
   };
 
+  if (templateLoading) {
+    return (
+      <ThemedView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={tintColor} />
+        <ThemedText style={styles.loadingText}>Carregando template...</ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView style={styles.container}>
       <KeyboardAvoidingView
@@ -239,71 +270,65 @@ export default function BudgetDetailsPage() {
             <ThemedText type="title" style={styles.pageTitle}>Detalhes do Orçamento</ThemedText>
           </View>
 
-          {visibleFields.some(f => f.key === 'name') && (
-            <View style={[styles.section, { backgroundColor }]}>
-              <ThemedText style={styles.label}>Nome do Orçamento</ThemedText>
-              <TextInput
-                style={[styles.input, { color: textColor, borderColor: iconColor, backgroundColor: inputBg }]}
-                value={budgetName}
-                onChangeText={setBudgetName}
-                placeholderTextColor={iconColor}
-              />
-            </View>
-          )}
-
-          {visibleFields.some(f => f.key === 'client') && (
-            <View style={[styles.section, { backgroundColor }]}>
-              <ThemedText style={styles.label}>Cliente *</ThemedText>
-              {selectedClient ? (
-                <View style={[styles.selectedClient, { borderColor: tintColor, backgroundColor: inputBg }]}>
-                  <View>
-                    <Text style={[styles.clientName, { color: textColor }]}>{selectedClient.name}</Text>
-                    <Text style={[styles.clientPhone, { color: iconColor }]}>{selectedClient.phone}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => setSelectedClient(null)}>
-                    <Ionicons name="close-circle" size={24} color="#ff4444" />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View>
-                  <TouchableOpacity
-                    style={[styles.selectButton, { borderColor: iconColor }]}
-                    onPress={() => setShowClientList(!showClientList)}
-                  >
-                    <ThemedText>Selecionar Cliente</ThemedText>
-                    <Ionicons name={showClientList ? "chevron-up" : "chevron-down"} size={20} color={iconColor} />
-                  </TouchableOpacity>
-
-                  {showClientList && (
-                    <View style={[styles.clientList, { borderColor: iconColor, backgroundColor: inputBg }]}>
-                      {clients.map(client => (
-                        <TouchableOpacity
-                          key={client.id}
-                          style={[styles.clientItem, { borderBottomColor: iconColor }]}
-                          onPress={() => {
-                            setSelectedClient(client);
-                            setShowClientList(false);
-                          }}
-                        >
-                          <ThemedText>{client.name}</ThemedText>
-                        </TouchableOpacity>
-                      ))}
-                      <TouchableOpacity
-                        style={styles.newClientButton}
-                        onPress={() => router.push('/client-modal')}
-                      >
-                        <Ionicons name="add" size={20} color={tintColor} />
-                        <Text style={[styles.newClientText, { color: tintColor }]}>Novo Cliente</Text>
+          {/* Render dynamic fields from template */}
+          {visibleFields.map((field) => {
+            // Handle idRef type (e.g., client selection)
+            if (field.type === 'idRef' && field.idRef === 'client') {
+              return (
+                <View key={field.key} style={[styles.section, { backgroundColor }]}>
+                  <ThemedText style={styles.label}>
+                    {field.label} {field.required && <Text style={styles.required}>*</Text>}
+                  </ThemedText>
+                  {selectedClient ? (
+                    <View style={[styles.selectedClient, { borderColor: tintColor, backgroundColor: inputBg }]}>
+                      <View>
+                        <Text style={[styles.clientName, { color: textColor }]}>{selectedClient.name}</Text>
+                        <Text style={[styles.clientPhone, { color: iconColor }]}>{selectedClient.phone}</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => setSelectedClient(null)}>
+                        <Ionicons name="close-circle" size={24} color="#ff4444" />
                       </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View>
+                      <TouchableOpacity
+                        style={[styles.selectButton, { borderColor: iconColor }]}
+                        onPress={() => setShowClientList(!showClientList)}
+                      >
+                        <ThemedText>Selecionar Cliente</ThemedText>
+                        <Ionicons name={showClientList ? "chevron-up" : "chevron-down"} size={20} color={iconColor} />
+                      </TouchableOpacity>
+
+                      {showClientList && (
+                        <View style={[styles.clientList, { borderColor: iconColor, backgroundColor: inputBg }]}>
+                          {clients.map(client => (
+                            <TouchableOpacity
+                              key={client.id}
+                              style={[styles.clientItem, { borderBottomColor: iconColor }]}
+                              onPress={() => {
+                                setSelectedClient(client);
+                                setShowClientList(false);
+                              }}
+                            >
+                              <ThemedText>{client.name}</ThemedText>
+                            </TouchableOpacity>
+                          ))}
+                          <TouchableOpacity
+                            style={styles.newClientButton}
+                            onPress={() => router.push('/client-modal')}
+                          >
+                            <Ionicons name="add" size={20} color={tintColor} />
+                            <Text style={[styles.newClientText, { color: tintColor }]}>Novo Cliente</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
                     </View>
                   )}
                 </View>
-              )}
-            </View>
-          )}
+              );
+            }
 
-          {/* Dynamic Fields Rendering */}
-          {visibleFields.map((field) => {
+            // Handle list type (items)
             if (field.type === 'list') {
               return (
                 <View key={field.key} style={[styles.section, { backgroundColor }]}>
@@ -359,6 +384,7 @@ export default function BudgetDetailsPage() {
               );
             }
 
+            // Handle other field types with DynamicInput
             return (
               <View key={field.key} style={[styles.section, { backgroundColor }]}>
                 <DynamicInput
@@ -404,6 +430,16 @@ export default function BudgetDetailsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
   },
   scrollContent: {
     padding: 20,

@@ -363,15 +363,14 @@ export default function CompanyInfoScreen() {
       };
       await saveCompanyInfoToCache(updatedInfo as CompanyInfo);
 
-      // Navigate to budget details with default fields or based on template
-      // For now, we'll pass a default set of fields if not specified
-      // The user mentioned "similar to what was done here", implying we might need to pass fields
-      // But company-info receives required fields. It doesn't necessarily pass them forward.
-      // However, the user said "retire a pagina template-1.tsx da tab bar e renderize ela quando o usuário clicar em próximo na página de company-info."
-      // And "os fields que deverão ser renderizados serão passados via parametro".
-      // Assuming we want to show all fields for now or a specific set.
-      // Let's pass all fields for template-1 for now.
-      router.push('/budget-details?fields=service,items,deadline,payment,validity');
+      // Navigate to budget details with templateId
+      const templateId = params.templateId as string;
+      if (templateId) {
+        router.push(`/budget-details?templateId=${templateId}`);
+      } else {
+        // Fallback to old behavior if no templateId
+        router.push('/budget-details?fields=service,items,deadline,payment,validity');
+      }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar as informações');
       console.error('Error saving company info:', error);
