@@ -167,7 +167,7 @@ These documentation files are specifically formatted for AI agents and should be
 │   │   ├── forgot-password.tsx
 │   │   └── _layout.tsx    # Public layout
 │   ├── (tabs)/            # Protected tab-based navigation
-│   │   ├── index.tsx      # Home/Dashboard screen
+│   │   ├── index.tsx      # /Dashboard screen
 │   │   ├── explore.tsx    # Explore screen (to be repurposed)
 │   │   └── _layout.tsx    # Tabs layout
 │   ├── _layout.tsx        # Root layout with theme & auth providers

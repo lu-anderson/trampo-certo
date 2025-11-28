@@ -11,12 +11,29 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useAuthActions } from "@/hooks/use-auth-actions";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn, loading } = useAuthActions();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  async function handleLogin() {
+    if (!email.trim() || !password.trim()) {
+      alert("Preencha email e senha.");
+      return;
+    }
+
+    try {
+      await signIn(email.trim(), password);
+      router.replace("/(tabs)");
+    } catch (err) {
+      alert("Email ou senha inválidos.");
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -24,12 +41,13 @@ export default function LoginScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Header azul */}
+        {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.title}>Trampo Certo</Text>
           <Text style={styles.subtitle}>Entre na sua conta</Text>
         </View>
 
+        {/* FORM */}
         <View style={styles.content}>
           {/* EMAIL */}
           <Text style={styles.label}>Email</Text>
@@ -42,9 +60,6 @@ export default function LoginScreen() {
               autoCapitalize="none"
               onChangeText={setEmail}
             />
-            <TouchableOpacity>
-              <Text style={styles.edit}>Editar</Text>
-            </TouchableOpacity>
           </View>
 
           {/* SENHA */}
@@ -58,7 +73,6 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
             />
-
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
@@ -74,12 +88,18 @@ export default function LoginScreen() {
             <Text style={styles.forgot}>Esqueceu sua senha?</Text>
           </TouchableOpacity>
 
-          {/* BOTÃO */}
-          <TouchableOpacity style={styles.primaryButton}>
-            <Text style={styles.primaryText}>Continuar</Text>
+          {/* BOTÃO LOGIN */}
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.primaryText}>
+              {loading ? "Entrando..." : "Continuar"}
+            </Text>
           </TouchableOpacity>
 
-          {/* Criar conta */}
+          {/* CRIAR CONTA */}
           <Text style={styles.registerText}>
             Não tem uma conta?{" "}
             <Text
@@ -90,14 +110,14 @@ export default function LoginScreen() {
             </Text>
           </Text>
 
-          {/* Divider */}
+          {/* DIVISOR */}
           <View style={styles.dividerBox}>
             <View style={styles.line} />
             <Text style={styles.or}>OU</Text>
             <View style={styles.line} />
           </View>
 
-          {/* SOCIAL BUTTONS — usando os ícones que você já tinha */}
+          {/* SOCIAL LOGIN */}
           <TouchableOpacity style={styles.socialButton}>
             <Ionicons name="logo-google" size={20} color="#2563EB" />
             <Text style={styles.socialText}>Continuar com Google</Text>
@@ -117,6 +137,10 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
+/* ---------------------- */
+/*       ESTILOS          */
+/* ---------------------- */
 
 const BLUE_700 = "#1D4ED8";
 const BLUE_500 = "#3B82F6";
@@ -139,16 +163,19 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 16,
   },
+
   content: {
     paddingHorizontal: 24,
     paddingTop: 28,
   },
+
   label: {
     fontSize: 14,
     color: "#374151",
     marginBottom: 6,
     fontWeight: "500",
   },
+
   inputBox: {
     backgroundColor: "#F5F7FA",
     borderWidth: 1,
@@ -160,21 +187,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 18,
   },
+
   input: {
     flex: 1,
     fontSize: 16,
     color: "#111",
   },
-  edit: {
-    color: BLUE_500,
-    fontWeight: "500",
-  },
+
   forgot: {
     color: BLUE_500,
     fontWeight: "500",
     fontSize: 14,
     marginBottom: 18,
   },
+
   primaryButton: {
     backgroundColor: BLUE_700,
     height: 52,
@@ -183,36 +209,43 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
+
   primaryText: {
     color: "#fff",
     fontSize: 17,
     fontWeight: "600",
   },
+
   registerText: {
     textAlign: "center",
     marginTop: 16,
     fontSize: 14,
     color: "#6B7280",
   },
+
   registerLink: {
     color: BLUE_500,
     fontWeight: "600",
   },
+
   dividerBox: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 26,
   },
+
   line: {
     flex: 1,
     height: 1,
     backgroundColor: "#E5E7EB",
   },
+
   or: {
     marginHorizontal: 12,
     color: "#6B7280",
     fontSize: 14,
   },
+
   socialButton: {
     height: 52,
     borderRadius: 12,
@@ -223,13 +256,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     marginBottom: 14,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
+
   socialText: {
     marginLeft: 12,
     fontSize: 15,
